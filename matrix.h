@@ -52,6 +52,7 @@ class ParallelMatrix {
   // Look for Init(int, int) for details.
   ParallelMatrix(int num_rows, int num_cols);
 
+
   ~ParallelMatrix();
 
   // Initilizes the matrix: original matrix is num_rows_*num_cols_
