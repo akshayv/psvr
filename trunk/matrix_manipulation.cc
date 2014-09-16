@@ -28,7 +28,7 @@ limitations under the License.
 #include "kernel.h"
 #include "pd_ipm_parm.h"
 
-namespace psvm {
+namespace psvr {
 
 // Cholesky factorization: factorize matrix A into LL^T.
 // "original" represents A, low_triangular represents L.
@@ -131,7 +131,7 @@ void MatrixManipulation::ICF(const Document &doc, const Kernel& kernel,
   double* diag1 = new double[local_rows];
   double* diag2 = new double[local_rows];
   for (int i = 0; i < local_rows; ++i) {
-    diag1[i] = kernel.CalcKernelWithLabel(*doc.GetLocalSample(i),
+    diag1[i] = kernel.CalcKernel(*doc.GetLocalSample(i),
                                           *doc.GetLocalSample(i));
     diag2[i] = 0;
     pivot_selected[i] = 0;
@@ -224,7 +224,7 @@ void MatrixManipulation::ICF(const Document &doc, const Kernel& kernel,
     for (int i = 0; i < local_rows; ++i) {
       if (pivot_selected[i] == false) {
         icf->Set(i, column, icf->Get(i, column) +
-          kernel.CalcKernelWithLabel(*doc.GetLocalSample(i), *pivot_sample));
+          kernel.CalcKernel(*doc.GetLocalSample(i), *pivot_sample));
       }
     }
     for (int i = 0; i < local_rows; ++i) {
@@ -310,4 +310,4 @@ void MatrixManipulation::CholForwardSub(const LLMatrix &a, const double *b,
   }
 }
 
-}  // namespace psvm
+}  // namespace psvr

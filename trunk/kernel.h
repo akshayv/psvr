@@ -22,7 +22,7 @@ limitations under the License.
 //    kernel.SetKernelType(Kernel::GAUSSIAN);
 //    kernel.SetRbfGamma(2);
 //    double value = kernel.CalcKernel(a, b);
-namespace psvm {
+namespace psvr {
 class Sample;
 
 // See comment at top of file for a complete description.

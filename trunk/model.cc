@@ -30,7 +30,7 @@ limitations under the License.
 #include "util.h"
 #include "parallel_interface.h"
 
-namespace psvm {
+namespace psvr {
 // Initializes mpi_.
 Model::Model() {
   mpi_ = ParallelInterface::GetParallelInterface();

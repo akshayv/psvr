@@ -27,7 +27,7 @@ limitations under the License.
 
 using namespace std;
 
-namespace psvm {
+namespace psvr {
 ParallelMatrix::ParallelMatrix()
     : num_rows_(0),
       num_cols_(0),

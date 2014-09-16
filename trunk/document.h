@@ -29,7 +29,7 @@ using namespace std;
 //    document.Read("sample.dat");
 //    const Sample* sample = document.GetLocalSample(0);
 //    const Feature& feature = sample.features[0];
-namespace psvm {
+namespace psvr {
 class ParallelInterface;
 
 // Stores the properties of a feature, including id and weight.

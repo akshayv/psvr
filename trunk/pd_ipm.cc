@@ -33,7 +33,7 @@ limitations under the License.
 #include "io.h"
 #include "parallel_interface.h"
 
-namespace psvm {
+namespace psvr {
 // The primal dual interior point method is based on the book below,
 // Convex Optimization, Stephen Boyd and Lieven Vandenberghe,
 // Cambridge University Press.

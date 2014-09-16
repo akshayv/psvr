@@ -18,7 +18,7 @@ limitations under the License.
 #include "parallel_interface.h"
 #include "timer.h"
 
-namespace psvm {
+namespace psvr {
 
 ParallelInterface* ParallelInterface::interface_;
 

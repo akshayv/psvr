@@ -21,7 +21,7 @@ limitations under the License.
 
 using std::string;
 
-namespace psvm {
+namespace psvr {
 // Records the total time, computational time, and communicational time between
 // Start() and Stop(). Typical use sample:
 //   Timer t1;

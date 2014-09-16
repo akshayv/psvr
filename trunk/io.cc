@@ -24,7 +24,7 @@ limitations under the License.
 #include "util.h"
 
 using namespace std;
-namespace psvm {
+namespace psvr {
 bool File::Delete(char* name) {
   return remove(name) == 0;
 }

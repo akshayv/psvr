@@ -23,7 +23,7 @@ limitations under the License.
 #include "mpi.h"
 
 // Forward declarations of the MPI stuff
-namespace psvm {
+namespace psvr {
 class ParallelInterface {
  public:
   // Call Init before all other calls to initialize mpi interface.

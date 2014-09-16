@@ -25,7 +25,7 @@ limitations under the License.
 #include "io.h"
 #include "parallel_interface.h"
 
-namespace psvm {
+namespace psvr {
 Document::Document(): num_total_(0), interface_(NULL) { }
 
 // Stores the class labels of the samples in samples_ to the array specified by

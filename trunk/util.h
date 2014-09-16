@@ -34,7 +34,7 @@ using namespace std;
                   if ((a) == (b)) { Log("Check failed: " #a " == " #b " ",  __FILE__, __LINE__) ; exit(1);}
 
 
-namespace psvm {
+namespace psvr {
 void Log(const string& msg, const string& file, int linenum);
 
 bool SplitOneIntToken(const char** source, const char* delim,

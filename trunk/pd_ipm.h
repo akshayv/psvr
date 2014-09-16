@@ -17,7 +17,7 @@ limitations under the License.
 #ifndef PD_IPM_H__
 #define PD_IPM_H__
 
-namespace psvm {
+namespace psvr {
 class PrimalDualIPMParameter;
 class ParallelMatrix;
 class Document;

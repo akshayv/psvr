@@ -16,23 +16,24 @@ limitations under the License.
 
 #include <cstdlib>
 #include <cstdio>
+#include <cmath>
 #include <cstring>
 #include <utility>
 #include <string>
 #include <vector>
-#include "svm_predict.h"
+#include "svr_predict.h"
 #include "document.h"
 #include "timer.h"
 #include "util.h"
 #include "io.h"
 #include "parallel_interface.h"
 
-namespace psvm {
-void SvmPredictor::ReadModel(const char* model_file) {
+namespace psvr {
+void SvrPredictor::ReadModel(const char* model_file) {
   model_.Load(model_file, "model");
 }
 
-std::string SvmPredictor::PrintTimeInfo() {
+std::string SvrPredictor::PrintTimeInfo() {
   std::string str = "========== Predicting Time Statistics ==========\n";
   str += "Total            : "
          + PredictingTimeProfile::total.PrintInfo() + "\n";
@@ -46,7 +47,7 @@ std::string SvmPredictor::PrintTimeInfo() {
   return str;
 }
 
-void SvmPredictor::SaveTimeInfo(const char *path, const char* file_name) {
+void SvrPredictor::SaveTimeInfo(const char *path, const char* file_name) {
   ParallelInterface *mpi = ParallelInterface::GetParallelInterface();
   int proc_id   = mpi->GetProcId();
 
@@ -63,9 +64,10 @@ void SvmPredictor::SaveTimeInfo(const char *path, const char* file_name) {
   delete obuf;
 }
 
-void SvmPredictor::PredictDocument(const char* testdata_filename,
+void SvrPredictor::PredictDocument(const char* testdata_filename,
                                    const char* predict_filename,
                                    int chunk_size,
+                                   double delta_error,
                                    EvaluationResult *result) {
   ParallelInterface* interface = ParallelInterface::GetParallelInterface();
   int myid = interface->GetProcId();
@@ -74,18 +76,20 @@ void SvmPredictor::PredictDocument(const char* testdata_filename,
   const SupportVector *support_vector = model_.support_vector();
 
   double *local_prediction = new double[chunk_size];
-  int  *label = new int[chunk_size];
+  double  *value = new double[chunk_size];
   double *global_prediction = NULL;
   if (myid == 0) global_prediction = new double[chunk_size];
 
   int num_total_document = 0;
-  int num_positive_positive = 0;  // Number of samples whose original class
-  // label is positive and predicted as
-  // positive.
-  int num_positive_negative = 0;
-  int num_negative_positive = 0;
-  int num_negative_negative = 0;
+  // int num_positive_positive = 0;  // Number of samples whose original class
+  // // label is positive and predicted as
+  // // positive.
+  // int num_positive_negative = 0;
+  // int num_negative_positive = 0;
+  // int num_negative_negative = 0;
   int num_parsed_samples = 0;
+  int num_acceptable_predictions = 0;
+  int num_unacceptable_predictions = 0;
 
   string line;
 
@@ -114,24 +118,18 @@ void SvmPredictor::PredictDocument(const char* testdata_filename,
                         MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
       if (myid == 0) {
         for (int i = 0; i < num_parsed_samples; i++) {
-          double predicted_label = global_prediction[i] + support_vector->b;
+          double predicted_value = global_prediction[i] + support_vector->b;
 
           // Output predicted values.
           size_t b = snprintf(sz_line, sizeof(sz_line), "%d %f\n",
-                              label[i], predicted_label);
-          CHECK(outputbuffer_predict->Write(sz_line, b) == b);
+                              value[i], predicted_value);
+          CHECK(outputbuffer_value->Write(sz_line, b) == b);
 
           // Updates the counters
-          if (label[i] > 0) {
-            if (predicted_label > 0)
-              ++num_positive_positive;
-            else
-              ++num_positive_negative;
+          if(abs(value[i] - predicted_value) <= delta_error) {
+            ++num_acceptable_predictions;
           } else {
-            if (predicted_label > 0)
-              ++num_negative_positive;
-            else
-              ++num_negative_negative;
+            ++num_unacceptable_predictions;
           }
         }
 
@@ -151,14 +149,14 @@ void SvmPredictor::PredictDocument(const char* testdata_filename,
 
     // Parses one sample
     const char* start = line.c_str();
-    if (!SplitOneIntToken(&start, " ", &label[num_parsed_samples])) {
+    if (!SplitOneIntToken(&start, " ", &value[num_parsed_samples])) {
       return;
     }
     vector<pair<string, string> > kv_pairs;
     SplitStringIntoKeyValuePairs(string(start), ":", " ",
                                  &kv_pairs);
     Sample sample;
-    sample.label = label[num_parsed_samples];
+    sample.label = value[num_parsed_samples];
     sample.two_norm_sq = 0.0;
     vector<pair<string, string> >::const_iterator pair_iter;
     for (pair_iter = kv_pairs.begin(); pair_iter != kv_pairs.end();
@@ -171,13 +169,13 @@ void SvmPredictor::PredictDocument(const char* testdata_filename,
     }
 
     // Tests the sample based on local support vectors
-    double predicted_label = 0.0;
+    double predicted_value = 0.0;
     double temp;
     for (int j = 0; j < support_vector->num_sv; ++j) {
       temp = kernel->CalcKernel(sample, support_vector->sv_data_test[j]);
-      predicted_label += support_vector->sv_alpha[j] * temp;
+      predicted_value += support_vector->sv_alpha[j] * temp;
     }
-    local_prediction[num_parsed_samples] = predicted_label;
+    local_prediction[num_parsed_samples] = predicted_value;
 
     // Moves on to next sample
     ++num_parsed_samples;
@@ -196,52 +194,57 @@ void SvmPredictor::PredictDocument(const char* testdata_filename,
   }
 
   // Computes some statistics
-  // Record the numbers
-  result->num_pos_pos = num_positive_positive;
-  result->num_pos_neg = num_positive_negative;
-  result->num_neg_pos = num_negative_positive;
-  result->num_neg_neg = num_negative_negative;
-  result->num_pos = num_positive_positive + num_positive_negative;
-  result->num_neg = num_negative_positive + num_negative_negative;
-  result->num_total = result->num_pos + result->num_neg;
+  // // Record the numbers
+  result->num_acceptable_predictions = num_acceptable_predictions;
+  result->num_unacceptable_predictions = num_unacceptable_predictions;
+  // result->num_pos_pos = num_positive_positive;
+  // result->num_pos_neg = num_positive_negative;
+  // result->num_neg_pos = num_negative_positive;
+  // result->num_neg_neg = num_negative_negative;
+  // result->num_pos = num_positive_positive + num_positive_negative;
+  // result->num_neg = num_negative_positive + num_negative_negative;
+  // result->num_total = result->num_pos + result->num_neg;
   // Calculate the precision/recall and accuracy
-  int correct = num_positive_positive + num_negative_negative;
-  int incorrect = num_negative_positive + num_positive_negative;
-  result->accuracy = static_cast<double>(correct) / (correct + incorrect);
-  result->positive_precision = static_cast<double>(num_positive_positive) /
-      (num_positive_positive + num_negative_positive);
-  result->positive_recall = static_cast<double>(num_positive_positive) /
-      (num_positive_positive + num_positive_negative);
-  result->negative_precision = static_cast<double>(num_negative_negative) /
-      (num_positive_negative + num_negative_negative);
-  result->negative_recall = static_cast<double>(num_negative_negative) /
-      (num_negative_positive + num_negative_negative);
+  // int correct = num_positive_positive + num_negative_negative;
+  // int incorrect = num_negative_positive + num_positive_negative;
+  result->accuracy = static_cast<double>(num_acceptable_predictions) / (num_acceptable_predictions + num_unacceptable_predictions);
+  // result->positive_precision = static_cast<double>(num_positive_positive) /
+  //     (num_positive_positive + num_negative_positive);
+  // result->positive_recall = static_cast<double>(num_positive_positive) /
+  //     (num_positive_positive + num_positive_negative);
+  // result->negative_precision = static_cast<double>(num_negative_negative) /
+  //     (num_positive_negative + num_negative_negative);
+  // result->negative_recall = static_cast<double>(num_negative_negative) /
+  //     (num_negative_positive + num_negative_negative);
 }
 }
 
-using namespace psvm;
+using namespace psvr;
 
 //=============================================================================
 // Parameter Definitions
 
 string FLAGS_model_path = ".";
 string FLAGS_output_path = ".";
+double FLAGS_delta_error = 0.1; // The error allowed in output prediction
 int FLAGS_batch_size = 10000;
 //=============================================================================
 
 void Usage() {
   const char* msg =
-      "svm_predict: This program predicts the class labels of samples. Usage:\n"
-      "  svm_predict data_file\n"
+      "svr_predict: This program predicts the class labels of samples. Usage:\n"
+      "  svr_predict data_file\n"
       "The predict result is saved in data_file.predict.\n"
       "\n"
       "  Flag descriptions:\n"
       "    -batch_size (How many samples to predict in one reduce) type: int32\n"
       "      default: 10000\n"
-      "    -model_path (Directory where to load the SVM model.) type: string\n"
+      "    -model_path (Directory where to load the SVR model.) type: string\n"
       "      default: .\n"
       "    -output_path (Directory where to save the predict result.) type: string\n"
-      "      default: .\n";
+      "      default: .\n"
+      "    -delta_error (The allowed delta error.) type: double\n"
+      "      default: 0.1\n";
   cerr << msg;
 }
 
@@ -262,7 +265,9 @@ void ParseCommandLine(int* argc, char*** argv) {
       FLAGS_model_path = string(param_value);
     } else if (strcmp(param_name, "output_path") == 0) {
       FLAGS_output_path = string(param_value);
-    } else {
+    } else if (strcmp(param_name, "delta_error") == 0) {
+      FLAGS_delta_error = atof(param_value);
+    }else {
       cerr << "Unknown parameter " << param_name << endl;
       Usage();
       exit(2);
@@ -292,8 +297,8 @@ int main(int argc, char** argv) {
   // Begin Timing
   PredictingTimeProfile::total.Start();
 
-  // Loads the SVM model and predicts the samples
-  SvmPredictor predictor;
+  // Loads the SVR model and predicts the samples
+  SvrPredictor predictor;
   PredictingTimeProfile::read_model.Start();
   predictor.ReadModel(FLAGS_model_path.c_str());
   PredictingTimeProfile::read_model.Stop();
@@ -303,7 +308,7 @@ int main(int argc, char** argv) {
   PredictingTimeProfile::predict.Start();
   predictor.PredictDocument(data_file.c_str(),
                             (FLAGS_output_path + "/PredictResult").c_str(),
-                            FLAGS_batch_size,
+                            FLAGS_batch_size, FLAGS_delta_error, 
                             &result);
   PredictingTimeProfile::predict.Stop();
   PredictingTimeProfile::predict.Minus(PredictingTimeProfile::read_test_doc);
@@ -326,20 +331,20 @@ int main(int argc, char** argv) {
               << predictor.PrintTimeInfo()
               << "========== Predict Matrix ==========" << endl
               << "Total: " << result.num_total << "  "
-              << "Positive: " << result.num_pos << "  "
-              << "Negative: " << result.num_neg << endl
-              << "Real\\Predict\tPositive \tNegative" << endl
-              << StringPrintf("Positive     \t%-8d \t%-8d",
-                 result.num_pos_pos, result.num_pos_neg) << endl
-              << StringPrintf("Negtive      \t%-8d \t%-8d",
-                 result.num_neg_pos, result.num_neg_neg) << endl
+              << "Acceptable: " << result.num_acceptable_predictions << "  "
+              << "Unacceptable: " << result.num_unacceptable_predictions << endl
+              // << "Real\\Predict\tPositive \tNegative" << endl
+              // << StringPrintf("Positive     \t%-8d \t%-8d",
+              //    result.num_pos_pos, result.num_pos_neg) << endl
+              // << StringPrintf("Negtive      \t%-8d \t%-8d",
+              //    result.num_neg_pos, result.num_neg_neg) << endl
               << "========== Predict Accuracy ==========" << endl
               << "Accuracy          : " << result.accuracy << endl
-              << "Positive Precision: " << result.positive_precision << endl
-              << "Positive Recall   : " << result.positive_recall << endl
-              << "Negative Precision: " << result.negative_precision << endl
-              << "Negative Recall   : " << result.negative_recall << endl;
-  }
+  //             << "Positive Precision: " << result.positive_precision << endl
+  //             << "Positive Recall   : " << result.positive_recall << endl
+  //             << "Negative Precision: " << result.negative_precision << endl
+  //             << "Negative Recall   : " << result.negative_recall << endl;
+  // }
 
   // Finalizes the parallel computing environment
   interface->Finalize();

@@ -19,7 +19,7 @@ limitations under the License.
 #include <stdio.h>
 #include <ctype.h>
 
-namespace psvm {
+namespace psvr {
 void Log(const string& msg, const string& file, int linenum) {
   char buff[100];
   sprintf(buff, "%d", linenum);

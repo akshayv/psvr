@@ -17,7 +17,7 @@ limitations under the License.
 #ifndef PD_IPM_PARM_H__
 #define PD_IPM_PARM_H__
 
-namespace psvm {
+namespace psvr {
 // The parameters for Interior Point Method, see comments
 // in pd_ipm.cc for references
 struct PrimalDualIPMParameter {

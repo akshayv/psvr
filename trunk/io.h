@@ -25,7 +25,7 @@ using std::string;
 
 // This file define some IO interfaces to compatible with Google
 // IO specifications.
-namespace psvm {
+namespace psvr {
 class File {
  public:
   // Opens file "name" with flags specified by "flag"

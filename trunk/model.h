@@ -22,7 +22,7 @@ limitations under the License.
 
 using namespace std;
 
-namespace psvm {
+namespace psvr {
 struct Sample;    // The structure that stores a sample.
 class Document;   // The class that encapsulates a dataset.
 class PrimalDualIPMParameter;  // The parameters for the primal-dual problem.

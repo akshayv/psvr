@@ -21,7 +21,7 @@ limitations under the License.
 
 using namespace std;
 
-namespace psvm {
+namespace psvr {
 struct PrimalDualIPMParameter;
 class Sample;
 class Document;
@@ -101,6 +101,6 @@ class MatrixManipulation {
   static void FreePivotSample(Sample *pPivotSample, int pivotIndex);
 
 };
-}  // namespace psvm
+}  // namespace psvr
 
 #endif

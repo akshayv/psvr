@@ -21,7 +21,7 @@ limitations under the License.
 
 #include "model.h"
 
-namespace psvm {
+namespace psvr {
 // Structure for evaluating the prediction result. The calculation is
 // based on the four values shown below:
 //    Real class\Predicted class   POSITIVE  NEGATIVE
@@ -29,17 +29,19 @@ namespace psvm {
 //    Negative                     c         d
 struct EvaluationResult {
   int num_total;
-  int num_pos;
-  int num_neg;
-  int num_pos_pos;
-  int num_pos_neg;
-  int num_neg_pos;
-  int num_neg_neg;
+  int num_acceptable_predictions;
+  // int num_unacceptable_predictions;
+  // int num_pos;
+  // int num_neg;
+  // int num_pos_pos;
+  // int num_pos_neg;
+  // int num_neg_pos;
+  // int num_neg_neg;
 
-  double positive_precision;  // a/(a+c)
-  double positive_recall;     // a/(a+b)
-  double negative_precision;  // d/(b+d)
-  double negative_recall;     // d/(c+d)
+  // double positive_precision;  // a/(a+c)
+  // double positive_recall;     // a/(a+b)
+  // double negative_precision;  // d/(b+d)
+  // double negative_recall;     // d/(c+d)
   double accuracy;            // (a+d)/(a+b+c+d)
 };
 
@@ -49,7 +51,7 @@ struct EvaluationResult {
 //    predictor.ReadModel(modelfilename);
 //    EvaluationResult result;
 //    predictor.PredictDocument(document, chunksize, &result);
-class SvmPredictor {
+class SvrPredictor {
  public:
   // Loads the model from the model_file
   void ReadModel(const char* model_file);

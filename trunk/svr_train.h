@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SVM_TRAIN_H__
-#define SVM_TRAIN_H__
+#ifndef SVR_TRAIN_H__
+#define SVR_TRAIN_H__
 
 #include <string>
 
-namespace psvm {
+namespace psvr {
 class Document;
 class Kernel;
 class Model;
@@ -28,7 +28,7 @@ class PrimalDualIPMParameter;
 // Trains a document with given kernel and IPM parameters.  The result is a
 // model structure including kernel and support vectors. Sample usage:
 //    See main in svm_train.cc
-class SvmTrainer {
+class SvrTrainer {
  public:
   void TrainModel(const Document& doc, const Kernel& kernel,
                   const PrimalDualIPMParameter& p, Model* model,

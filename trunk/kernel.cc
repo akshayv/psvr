@@ -21,7 +21,7 @@ limitations under the License.
 #include "kernel.h"
 #include "document.h"
 
-namespace psvm {
+namespace psvr {
 Kernel::Kernel()
     : kernel_type_(LINEAR),
       rbf_gamma_(1),

@@ -26,7 +26,7 @@ limitations under the License.
 //   Factorization), ProductMM(Compute HDH'), CholBackwardSub(resolve A'x=b)
 //   CholForwardSub(resolve Ax=b)
 
-namespace psvm {
+namespace psvr {
 struct PrimalDualIPMParameter;
 class Sample;
 class Document;

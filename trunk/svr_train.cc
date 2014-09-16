@@ -18,7 +18,7 @@ limitations under the License.
 #include <string>
 #include <cstdlib>
 #include <cstdio>
-#include "svm_train.h"
+#include "svr_train.h"
 #include "timer.h"
 #include "common.h"
 #include "document.h"
@@ -33,8 +33,8 @@ limitations under the License.
 #include "parallel_interface.h"
 
 
-namespace psvm {
-void SvmTrainer::TrainModel(const Document& doc, const Kernel& kernel,
+namespace psvr {
+void SvrTrainer::TrainModel(const Document& doc, const Kernel& kernel,
                        const PrimalDualIPMParameter& parameter,
                        Model* model, bool failsafe) {
   TrainingTimeProfile::icf.Start();
@@ -91,7 +91,7 @@ void SvmTrainer::TrainModel(const Document& doc, const Kernel& kernel,
   icf_result.Destroy();
 }
 
-std::string SvmTrainer::PrintTimeInfo() {
+std::string SvrTrainer::PrintTimeInfo() {
   std::string str = "========== Training Time Statistics ==========\n";
   str += " Total                                    : "
          + TrainingTimeProfile::total.PrintInfo() + "\n";
@@ -127,7 +127,7 @@ std::string SvmTrainer::PrintTimeInfo() {
   return str;
 }
 
-void SvmTrainer::SaveTimeInfo(const char *path, const char* file_name) {
+void SvrTrainer::SaveTimeInfo(const char *path, const char* file_name) {
   ParallelInterface *mpi = ParallelInterface::GetParallelInterface();
   int proc_id   = mpi->GetProcId();
 
@@ -144,7 +144,7 @@ void SvmTrainer::SaveTimeInfo(const char *path, const char* file_name) {
 }
 }
 
-using namespace psvm;
+using namespace psvr;
 
 //=============================================================================
 // Parameter Definitions
@@ -184,9 +184,9 @@ bool FLAGS_failsafe = false;
 
 void Usage() {
   const char* msg =
-      "svm_train: This program does the SVM trainings on the training samples and "
-      "generages a SVM model for futures prediction use. Usage:\n"
-      "  svm_train data_file\n"
+      "svr_train: This program does the SVR trainings on the training samples and "
+      "generages a SVR model for futures prediction use. Usage:\n"
+      "  svr_train data_file\n"
       "\n"
       "  Flag descriptions:\n"
       "    -fact_threshold (When to stop ICF. Should be in (0, 1]) type: double\n"
@@ -197,7 +197,7 @@ void Usage() {
       "      default: 0.001\n"
       "    -gamma (Gamma value in Gaussian and Laplacian kernel) type: double\n"
       "      default: 1\n"
-      "    -hyper_parm (Hyper-parameter C in SVM model) type: double default: 1\n"
+      "    -hyper_parm (Hyper-parameter C in SVR model) type: double default: 1\n"
       "    -kernel_type (Type of kernel function. Available types are: 0: Linear  1:\n"
       "      Polynomial  2: Gaussian  3: Laplacian) type: int32 default: 2\n"
       "    -max_iteration (Maximum iterations for the IPM method) type: int32\n"
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
   ParseCommandLine(&argc, &argv);
 
   Kernel kernel;
-  SvmTrainer trainer;
+  SvrTrainer trainer;
   Model model;
   Document doc;
   PrimalDualIPMParameter ipm_parameter;
@@ -373,7 +373,7 @@ int main(int argc, char** argv) {
   }
   TrainingTimeProfile::read_doc.Stop();
 
-  // Performs PD-IPM SVM training based on ICF
+  // Performs PD-IPM SVR training based on ICF
   TrainingTimeProfile::train_model.Start();
   trainer.TrainModel(doc, kernel, ipm_parameter, &model, FLAGS_failsafe);
 

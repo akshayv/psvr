@@ -19,7 +19,7 @@ limitations under the License.
 #include <string>
 #include "timer.h"
 
-namespace psvm {
+namespace psvr {
 double Timer::communication_elapsed_ = 0.0;
 double Timer::last_communication_begin_time_ = 0.0;
 double Timer::sync_elapsed_ = 0.0;
