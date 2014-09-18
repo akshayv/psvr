@@ -121,9 +121,9 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
           double predicted_value = global_prediction[i] + support_vector->b;
 
           // Output predicted values.
-          size_t b = snprintf(sz_line, sizeof(sz_line), "%d %f\n",
+          size_t b = snprintf(sz_line, sizeof(sz_line), "%lf %f\n",
                               value[i], predicted_value);
-          CHECK(outputbuffer_value->Write(sz_line, b) == b);
+          CHECK(outputbuffer_predict->Write(sz_line, b) == b);
 
           // Updates the counters
           if(abs(value[i] - predicted_value) <= delta_error) {
@@ -149,14 +149,14 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
 
     // Parses one sample
     const char* start = line.c_str();
-    if (!SplitOneIntToken(&start, " ", &value[num_parsed_samples])) {
+    if (!SplitOneDoubleToken(&start, " ", &value[num_parsed_samples])) {
       return;
     }
     vector<pair<string, string> > kv_pairs;
     SplitStringIntoKeyValuePairs(string(start), ":", " ",
                                  &kv_pairs);
     Sample sample;
-    sample.label = value[num_parsed_samples];
+    sample.value = value[num_parsed_samples];
     sample.two_norm_sq = 0.0;
     vector<pair<string, string> >::const_iterator pair_iter;
     for (pair_iter = kv_pairs.begin(); pair_iter != kv_pairs.end();
@@ -186,7 +186,7 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
   reader->Close();
   delete reader;
   delete [] local_prediction;
-  delete [] label;
+  delete [] value;
   if (myid == 0) {
     delete [] global_prediction;
     CHECK(outputbuffer_predict->Close());
@@ -339,12 +339,12 @@ int main(int argc, char** argv) {
               // << StringPrintf("Negtive      \t%-8d \t%-8d",
               //    result.num_neg_pos, result.num_neg_neg) << endl
               << "========== Predict Accuracy ==========" << endl
-              << "Accuracy          : " << result.accuracy << endl
+              << "Accuracy          : " << result.accuracy << endl;
   //             << "Positive Precision: " << result.positive_precision << endl
   //             << "Positive Recall   : " << result.positive_recall << endl
   //             << "Negative Precision: " << result.negative_precision << endl
   //             << "Negative Recall   : " << result.negative_recall << endl;
-  // }
+  }
 
   // Finalizes the parallel computing environment
   interface->Finalize();

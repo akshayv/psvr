@@ -42,7 +42,7 @@ struct Feature {
 // class label, the square of its two norm and all its features.
 struct Sample {
   int id;
-  int label;
+  double value;
   double two_norm_sq;
   vector<Feature> features;
 };
@@ -97,7 +97,7 @@ class Document {
   // specified by the output parameter 'labels'. The class labels will be
   // stored in the same order as the samples. It is the caller's responsibility
   // to allocate enough memory for the labels.
-  void GetLocalLabels(int* labels) const;
+  void GetLocalValues(double* values) const;
 
   // The following methods are used to encode Sample to or decode Sample from
   // a memory block, which is used to transfer Sample in the network.

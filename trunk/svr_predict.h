@@ -30,7 +30,7 @@ namespace psvr {
 struct EvaluationResult {
   int num_total;
   int num_acceptable_predictions;
-  // int num_unacceptable_predictions;
+  int num_unacceptable_predictions;
   // int num_pos;
   // int num_neg;
   // int num_pos_pos;
@@ -61,6 +61,7 @@ class SvrPredictor {
   void PredictDocument(const char* testdata_filename,
                        const char* predict_filename,
                        int chunk_size,
+                       double delta_error,
                        EvaluationResult *result);
 
   // Prints the time information of current processor.

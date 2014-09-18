@@ -31,9 +31,9 @@ Document::Document(): num_total_(0), interface_(NULL) { }
 // Stores the class labels of the samples in samples_ to the array specified by
 // 'labels'. It is the caller's reposibility to allocate enough memory for the
 // labels.
-void Document::GetLocalLabels(int* labels) const {
+void Document::GetLocalValues(double* values) const {
   for (size_t i = 0; i < samples_.size(); ++i) {
-    labels[i] = samples_[i].label;
+    values[i] = samples_[i].value;
   }
 }
 
@@ -62,28 +62,28 @@ bool Document::Read(const char* filename) {
   while (file->ReadLine(&line)) {
     // If the sample should be assigned to this processor
     if (num_total_ % num_processors == myid) {
-      int label = 0;
+      double value = 0;
       const char* start = line.c_str();
       // Extracts the sample's class label
-      if (!SplitOneIntToken(&start, " ", &label)) {
+      if (!SplitOneDoubleToken(&start, " ", &value)) {
         cerr << "Error parsing line: " << num_total_ + 1 << endl;
         return false;
       }
 
       // Gets the local number of positive and negative samples
-      if (label == 1) {
+      if (value >= 0) {
         ++num_local_pos;
-      } else if (label == -1) {
+      } else if (value < 0) {
         ++num_local_neg;
       } else {
-        cerr << "Unknow label in line: " << num_total_ + 1 << label;
+        cerr << "Unknow label in line: " << num_total_ + 1 << value;
         return false;
       }
 
       // Creates a "Sample" and add to the end of samples_
       samples_.push_back(Sample());
       Sample& sample = samples_.back();
-      sample.label = label;
+      sample.value = value;
       sample.id = num_total_;  // Currently num_total_ == sample id
       sample.two_norm_sq = 0.0;
 
@@ -151,7 +151,7 @@ const Sample* Document::GetLocalSample(int local_row_index) const {
 size_t Document::GetPackSize(const Sample & sample) {
   // Size of the first three data members of Sample
   int size_buffer = sizeof(sample.id)
-      + sizeof(sample.label)
+      + sizeof(sample.value)
       + sizeof(sample.two_norm_sq);
 
   // Size of num_features. We need to encode it to indicate how many
@@ -182,8 +182,8 @@ size_t Document::PackSample(char *&buffer, const Sample &sample) {
   // Encodes the first three data members of sample
   memcpy(buffer + offset, &(sample.id), sizeof(sample.id));
   offset += sizeof(sample.id);
-  memcpy(buffer + offset, &(sample.label), sizeof(sample.label));
-  offset += sizeof(sample.label);
+  memcpy(buffer + offset, &(sample.value), sizeof(sample.value));
+  offset += sizeof(sample.value);
   memcpy(buffer + offset, &(sample.two_norm_sq), sizeof(sample.two_norm_sq));
   offset += sizeof(sample.two_norm_sq);
 
@@ -215,8 +215,8 @@ size_t Document::UnpackSample(Sample *&sample, const char *buffer) {
   // Decodes the first three data members of sample
   memcpy(&(sample->id), buffer + offset, sizeof(sample->id));
   offset += sizeof(sample->id);
-  memcpy(&(sample->label), buffer + offset, sizeof(sample->label));
-  offset += sizeof(sample->label);
+  memcpy(&(sample->value), buffer + offset, sizeof(sample->value));
+  offset += sizeof(sample->value);
   memcpy(&(sample->two_norm_sq), buffer + offset, sizeof(sample->two_norm_sq));
   offset += sizeof(sample->two_norm_sq);
 

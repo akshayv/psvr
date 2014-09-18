@@ -65,8 +65,8 @@ double Kernel::CalcKernel(const Sample& a, const Sample& b) const {
 
 // Like CalcKernel, but negates the result if a and b have different class
 // labels.
-double Kernel::CalcKernelWithLabel(const Sample& a, const Sample& b) const {
-  return CalcKernel(a, b) * (a.label == b.label ? 1.0 : -1.0);
+double Kernel::CalcKernelWithValue(const Sample& a, const Sample& b) const {
+  return CalcKernel(a, b) * (a.value * b.value);
 }
 
 double Kernel::OneNormSub(const Sample& a, const Sample& b) const {

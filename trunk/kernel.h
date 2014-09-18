@@ -57,7 +57,7 @@ class Kernel {
 
   // Like CalcKernel, but negates the result if a and b have different class
   // labels.
-  double CalcKernelWithLabel(const Sample& a, const Sample& b) const;
+  double CalcKernelWithValue(const Sample& a, const Sample& b) const;
 
  private:
   // Computes -|a - b|. It is the caller's responsibility to make sure that
