@@ -40,59 +40,42 @@ class PrimalDualIPM {
  private:
   // Compute $HH^T\alpha$, which is part of $z$, $\alpha$ is primal variable
   int ComputePartialZ(const ParallelMatrix& icf,
-                      const double *x,
-                      double to,
-                      int local_num_rows,
+                      const double *x, const double *x_star, 
+                      const double *dx, const double *dx_star, 
+                      const double to,
+                      const int local_num_rows,
                       double *z);
+
+  int ComputePartialW(const ParallelMatrix& icf,
+                      const double *x, const double *x_star, 
+                      const double to,
+                      const int local_num_rows,
+                      double *w);
 
   // Compute surrogate gap
   double ComputeSurrogateGap(double c_pos,
                              double c_neg,
-                             const double *label,
+                             const double *value,
                              int local_num_rows,
                              const double *x,
+                             const double *x_star,
                              const double *la,
-                             const double *xi);
+                             const double *xi, 
+                             const double *the, 
+                             const double *phi);
 
-  // Compute direction of primal vairalbe $x$
-  int ComputeDeltaX(const ParallelMatrix& icf,
-                    const double *d,
-                    const double *label,
-                    const double dnu,
-                    const LLMatrix& lra,
-                    const double *z,
-                    const int local_num_rows,
-                    double *dx);
-
-  // Compute direction of primal varialbe $\nu$
-  int ComputeDeltaNu(const ParallelMatrix& icf,
-                     const double *d,
-                     const double *label,
-                     const double *z,
-                     const double *x,
-                     const LLMatrix& lra,
-                     const int local_num_rows,
-                     double *dnu);
-
-  // Solve a special form of linear equation using
-  // Sherman-Morrison-Woodbury formula
-  int LinearSolveViaICFCol(const ParallelMatrix& icf,
-                           const double *d,
-                           const double *b,
-                           const LLMatrix& lra,
-                           const int local_num_rows,
-                           double *x);
-
-  // Loads the values of alpha, xi, lambda and nu to resume from an interrupted
-  // solving process.
+  // Loads the values of alpha, alpha*, xi, lambda, theta, phi and nu 
+  //to resume from an interrupted solving process.
   void LoadVariables(const PrimalDualIPMParameter& parameter,
                      int num_local_doc, int num_total_doc, int *step,
-                     double *nu, double *x, double *la, double *xi);
+                     double* nu, double *x, double *x_star, double *la, 
+                     double *xi, double* the, double* phi);
 
-  // Saves the values of alpha, xi, lambda and nu.
+  // Saves the values of alpha, alpha*, xi, lambda, theta, phi and nu.
   void SaveVariables(const PrimalDualIPMParameter& parameter,
                      int num_local_doc, int num_total_doc, int step,
-                     double nu, double *x, double *la, double *xi);
+                     double* nu, double *x, double *x_star, double *la, 
+                     double *xi, double* the, double* phi);
 };
 }  // namespace psvm
 

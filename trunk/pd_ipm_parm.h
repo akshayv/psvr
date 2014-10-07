@@ -30,7 +30,7 @@ struct PrimalDualIPMParameter {
   // threshold for primal variable to be deemed as zero
   double epsilon_x;
   // threshold for support vector
-  double epsilon_sv;
+  double epsilon_svr;
   // feasibility threshold
   double feas_thresh;
   // stop condition for surrogate gap
