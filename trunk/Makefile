@@ -7,11 +7,11 @@ CFLAGS=-O3 -Wall
 LD=mpicxx
 LFLAGS=-O3 -Wall
 
-all: svm_train svm_predict
+all: svr_train svr_predict
 
 clean:
 	rm -f *.o
-	rm -f svm_train svm_predict
+	rm -f svr_train svr_predict
 
 io.o: io.cc io.h
 	$(CC) -c $(CFLAGS)  io.cc -o io.o
@@ -43,15 +43,15 @@ parallel_interface.o: parallel_interface.cc parallel_interface.h
 pd_ipm.o: pd_ipm.cc pd_ipm.h
 	$(CC) -c $(CFLAGS)  pd_ipm.cc -o pd_ipm.o
 
-svm_train.o: svm_train.cc
-	$(CC) -c $(CFLAGS)  svm_train.cc -o svm_train.o
+svr_train.o: svr_train.cc
+	$(CC) -c $(CFLAGS)  svr_train.cc -o svr_train.o
 
-svm_predict.o: svm_predict.cc svm_predict.h
-	$(CC) -c $(CFLAGS)  svm_predict.cc -o svm_predict.o
+svr_predict.o: svr_predict.cc svr_predict.h
+	$(CC) -c $(CFLAGS)  svr_predict.cc -o svr_predict.o
 
 
-svm_train: timer.o io.o parallel_interface.o util.o model.o document.o matrix.o kernel.o matrix_manipulation.o pd_ipm.o svm_train.o
-	$(LD) $(LFLAGS) timer.o io.o parallel_interface.o util.o document.o model.o matrix.o kernel.o matrix_manipulation.o pd_ipm.o svm_train.o -o svm_train
+svr_train: timer.o io.o parallel_interface.o util.o model.o document.o matrix.o kernel.o matrix_manipulation.o pd_ipm.o svr_train.o
+	$(LD) $(LFLAGS) timer.o io.o parallel_interface.o util.o document.o model.o matrix.o kernel.o matrix_manipulation.o pd_ipm.o svr_train.o -o svr_train
 
-svm_predict: svm_predict.o model.o document.o parallel_interface.o
-	$(LD) $(LFLAGS) timer.o io.o util.o document.o model.o kernel.o parallel_interface.o svm_predict.o -o svm_predict
+svr_predict: svr_predict.o model.o document.o parallel_interface.o
+	$(LD) $(LFLAGS) timer.o io.o util.o document.o model.o kernel.o parallel_interface.o svr_predict.o -o svr_predict
