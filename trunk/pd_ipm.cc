@@ -195,7 +195,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // have a relation, for more details,
     // refer to Algorithm 11.2 step 1. in Convext Optimization.
     TrainingTimeProfile::surrogate_gap.Start();
-    eta = ComputeSurrogateGap(c_pos, c_neg, value, local_num_rows, x, la, xi);
+    eta = ComputeSurrogateGap(c_pos, c_neg, value, local_num_rows, x, x_star, la, xi, the, phi);
     // Note m is number of total constraints
     t = (parameter.mu_factor) * static_cast<double>(num_constraints) / eta;
     if (parameter.verb >= 1 && myid == 0) {
@@ -534,7 +534,7 @@ int PrimalDualIPM::ComputeDeltaNu(const double *f, const double *z,
                                   double *dnu) {
   register int i;
 
-  for (int i = 0; i < local_num_rows; ++i)
+  for (i = 0; i < local_num_rows; ++i)
     dnu[i] = -1 * global_sum * f[i] + z[i];
 
   return 0;
