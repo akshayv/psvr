@@ -40,29 +40,49 @@ class PrimalDualIPM {
  private:
   // Compute $HH^T\alpha$, which is part of $z$, $\alpha$ is primal variable
   int ComputePartialZ(const ParallelMatrix& icf,
-                      const double *x, const double *x_star, 
-                      const double *dx, const double *dx_star, 
-                      const double to,
-                      const int local_num_rows,
+                      const double *x,
+                      double to,
+                      int local_num_rows,
                       double *z);
-
-  int ComputePartialW(const ParallelMatrix& icf,
-                      const double *x, const double *x_star, 
-                      const double to,
-                      const int local_num_rows,
-                      double *w);
 
   // Compute surrogate gap
   double ComputeSurrogateGap(double c_pos,
-                             double c_neg,
-                             const double *value,
-                             int local_num_rows,
-                             const double *x,
-                             const double *x_star,
-                             const double *la,
-                             const double *xi, 
-                             const double *the, 
-                             const double *phi);
+                                        double c_neg,
+                                        const double *value,
+                                        int local_num_rows,
+                                        const double *x,
+                                        const double *x_star,
+                                        const double *la,
+                                        const double *xi,
+                                        const double *the,
+                                        const double *phi);
+
+  // Compute direction of primal vairalbe $x$
+  int ComputeDeltaX(const ParallelMatrix& icf,
+                    const double *d,
+                    const double *label,
+                    const double *dnu,
+                    const LLMatrix& lra,
+                    const double *z,
+                    const int local_num_rows,
+                    double *dx);
+
+  // Compute direction of primal varialbe $\nu$
+  int ComputeDeltaNu(const double *f, 
+                     const double *z,
+                     int local_num_rows, 
+                     const double global_sum, 
+                     double *dnu);
+
+  // Solve a special form of linear equation using
+  // Sherman-Morrison-Woodbury formula
+  int LinearSolveViaICFCol(const ParallelMatrix& icf,
+                           const double *d,
+                           const double *b,
+                           const LLMatrix& lra,
+                           const int local_num_rows,
+                           double *x);
+
 
   // Loads the values of alpha, alpha*, xi, lambda, theta, phi and nu 
   //to resume from an interrupted solving process.

@@ -163,6 +163,7 @@ double FLAGS_poly_const = 1.0;
 // Learning related options
 double FLAGS_zero_threshold = 1.0e-9;
 double FLAGS_svr_threshold = 1.0e-4;
+double FLAGS_sv_threshold = 1.0e-4;
 double FLAGS_hyper_parm = 1.0;
 double FLAGS_positive_weight = 1.0;
 double FLAGS_negative_weight = 1.0;
@@ -254,6 +255,8 @@ void ParseCommandLine(int* argc, char*** argv) {
       FLAGS_zero_threshold = atof(param_value);
     } else if (strcmp(param_name, "svr_threshold") == 0) {
       FLAGS_svr_threshold = atof(param_value);
+    } else if (strcmp(param_name, "sv_threshold") == 0) {
+      FLAGS_sv_threshold = atof(param_value);
     } else if (strcmp(param_name, "hyper_parm") == 0) {
       FLAGS_hyper_parm = atof(param_value);
     } else if (strcmp(param_name, "positive_weight") == 0) {
@@ -313,6 +316,7 @@ int main(int argc, char** argv) {
       (FLAGS_kernel_type < 0 || FLAGS_kernel_type > 3) ||
       (FLAGS_zero_threshold <= 0) ||
       (FLAGS_svr_threshold <= 0) ||
+      (FLAGS_sv_threshold <= 0) ||
       (FLAGS_hyper_parm <= 0) ||
       (FLAGS_positive_weight <= 0 || FLAGS_negative_weight <= 0) ||
       (FLAGS_feasible_threshold < 0 || FLAGS_surrogate_gap_threshold < 0) ||
@@ -338,6 +342,7 @@ int main(int argc, char** argv) {
   kernel.set_coef_const(FLAGS_poly_const);
   ipm_parameter.epsilon_x = FLAGS_zero_threshold;
   ipm_parameter.epsilon_svr = FLAGS_svr_threshold;
+  ipm_parameter.epsilon_sv = FLAGS_sv_threshold;
   ipm_parameter.hyper_parm = FLAGS_hyper_parm;
   strncpy(ipm_parameter.model_path, FLAGS_model_path.c_str(),
           sizeof(ipm_parameter.model_path));
