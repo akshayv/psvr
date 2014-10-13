@@ -141,7 +141,6 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   //   \nu = 0
 
   memset(x, 0, sizeof(x[0]) * local_num_rows);
-  memset(x_star, 0, sizeof(x_star[0]) * local_num_rows);
   memset(nu, 0, sizeof(nu[0]) * local_num_rows);
   for (i = 0; i < local_num_rows; ++i) {
     double c = (value[i] > 0) ? c_pos : c_neg;
@@ -149,6 +148,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     xi[i] = c / 10.0;
     the[i] = c / 10.0;
     phi[i] = c / 10.0;
+    x_star[i] = c / 10.0;
   }
   const ParallelMatrix& rbicf = h;
   int rank = rbicf.GetNumCols();
@@ -224,8 +224,9 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
       z[i] = -1 * z[i] - nu[i] + value[i];
       temp = the[i] - la[i] + z[i];
       resd += temp * temp;
-      resp += x[i] - x_star[i];
+      resp += x[i];
     }
+    
     double from_sum[2], to_sum[2];
     from_sum[0] = resp;
     from_sum[1] = resd;
@@ -278,10 +279,10 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
       thecz[i] = std::max(the[i] / m_lx, parameter.epsilon_x);
       phizstar[i] = std::max(phi[i] / m_lxstar, parameter.epsilon_x);
       
-      temp = (lacz[i] - thecz[i]);
+      temp = lacz[i] + thecz[i];
       f[i] = f[i] + temp; 
       d[i] = 1.0 / temp;  // note here compute D^{-1} beforehand
-      e[i] = 1.0 / (xiczstar[i] - phizstar[i]);  // note here compute e^{-1} beforehand
+      e[i] = 1.0 / (xiczstar[i] + phizstar[i]);  // note here compute e^{-1} beforehand
       sumx += x[i];
     }
     // complete computation of z, note before
@@ -318,16 +319,14 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     ComputeDeltaNu(f, z, local_num_rows, global_sum, dnu);
     ComputeDeltaX(rbicf, d, value, dnu, lra, z, local_num_rows, dx);
     lra.Destroy();
-
     // update dxi, dphi, dthe and dla
     for (i = 0; i < local_num_rows; ++i) {
-      dx_star[i] = tzstar[i] - tczstar[i] / e[i];
-      dla[i] = tczm[i] - la[i] + lacz[i] * dx[i] - xi[i];
+      dx_star[i] = (-1 * parameter.epsilon_svr + tzstar[i] - tczstar[i]) / e[i];
+      dla[i] = tczm[i] - la[i] + lacz[i] * dx[i];
       dxi[i] = tczstar[i] - xi[i] + xiczstar[i] * dx_star[i];
       dthe[i] = tczp[i] - the[i] - thecz[i] * dx[i] ;
       dphi[i] = tzstar[i] - phi[i] - phizstar[i] * dx_star[i];
     }
-
     // Line Search
     //
     // line search for primal and dual variable
@@ -384,7 +383,6 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     //
     ap = std::min(to_step[0], 1.0) * 0.99;
     ad = std::min(to_step[1], 1.0) * 0.99;
-
     // Update
     //
     // Update vectors \alpha, \xi, \lambda, and scalar \nu according to Newton
@@ -523,6 +521,7 @@ int PrimalDualIPM::ComputeDeltaX(const ParallelMatrix& icf,
     tz[i] = z[i] - dnu[i];
   // calculate inv(Q+D)*(z-dnu)
   LinearSolveViaICFCol(icf, d, tz, lra, local_num_rows, dx);
+  
   // clean up
   delete [] tz;
   return 0;
@@ -533,9 +532,8 @@ int PrimalDualIPM::ComputeDeltaNu(const double *f, const double *z,
                                   int local_num_rows, const double global_sum, 
                                   double *dnu) {
   register int i;
-
   for (i = 0; i < local_num_rows; ++i)
-    dnu[i] = -1 * global_sum * f[i] + z[i];
+    dnu[i] = global_sum * f[i] + z[i];
 
   return 0;
 }
