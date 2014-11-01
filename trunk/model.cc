@@ -75,7 +75,7 @@ void Model::CheckSupportVector(double *alpha,
       // alpha[i] to be the weighted hyper parameter.
       pos_sv[num_svs++] = i;
       const Sample *ptr_sample = doc.GetLocalSample(i);
-      double c = (ptr_sample->label > 0) ? c_pos : c_neg;
+      double c = (ptr_sample->value > 0) ? c_pos : c_neg;
       if ((c - alpha[i]) <= ipm_parameter.epsilon_sv) {
         alpha[i] = c;
         ++num_bsv;
@@ -90,10 +90,10 @@ void Model::CheckSupportVector(double *alpha,
     // sv_alpha stores the production of alpha[i] and label[i].
     // sv_alpha[i] = alpha[i] * label[i].
     const Sample *ptr_sample = doc.GetLocalSample(pos_sv[i]);
-    if (ptr_sample->label > 0) {
+    if (ptr_sample->value > 0) {
       support_vector_.sv_alpha.push_back(alpha[pos_sv[i]]);
     }
-    if (ptr_sample->label < 0) {
+    if (ptr_sample->value < 0) {
       support_vector_.sv_alpha.push_back(-alpha[pos_sv[i]]);
     }
   }
@@ -195,6 +195,8 @@ void Model::SaveChunks(const char* str_directory, const char* model_name) {
     ptr_sample = support_vector_.sv_data[i];
     // first, alpha value with label
     obuf->WriteString(StringPrintf("%.8lf", support_vector_.sv_alpha[i]));
+    // then the value
+    obuf->WriteString(StringPrintf(" %.8lf", ptr_sample->value));
     // then, support vector sample
     size_t num_words = ptr_sample->features.size();
     for (size_t j = 0; j < num_words; j++) {
@@ -327,15 +329,17 @@ void Model::LoadChunks(const char*str_directory, const char* model_name) {
   int num_actual_local_sv = 0;
   while (reader->ReadLine(&line)) {
     buf = line.c_str();
-    double alpha;
+    double alpha, value;
     SplitOneDoubleToken(&buf, " ", &alpha);
     support_vector_.sv_alpha.push_back(alpha);
+
+    SplitOneDoubleToken(&buf, " ", &value);
 
     support_vector_.sv_data_test.push_back(Sample());
     Sample& sample = support_vector_.sv_data_test.back();
 
     sample.id = num_local_sv;
-    alpha > 0 ? sample.label = 1 : sample.label = -1;
+    sample.value = value;
     sample.two_norm_sq = 0;
     if (buf != NULL) {
       vector<pair<string, string> > kv_pairs;
@@ -487,7 +491,7 @@ void Model::ComputeB(const PrimalDualIPMParameter& ipm_parameter) {
   if (proc_id == 0) {
     double b = 0;
     for (int i = 0; i < num_actual_selected_sv; i++)
-      b += selected_sv[i]->label - global_b[i];
+      b += selected_sv[i]->value - global_b[i];
     b /= num_actual_selected_sv;
 
     // Output b value.

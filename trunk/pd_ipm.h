@@ -61,18 +61,17 @@ class PrimalDualIPM {
   int ComputeDeltaX(const ParallelMatrix& icf,
                     const double *d,
                     const double *label,
-                    const double *dnu,
+                    const double dnu,
                     const LLMatrix& lra,
                     const double *z,
                     const int local_num_rows,
                     double *dx);
 
   // Compute direction of primal varialbe $\nu$
-  int ComputeDeltaNu(const double *f, 
-                     const double *z,
-                     int local_num_rows, 
-                     const double global_sum, 
-                     double *dnu);
+  int ComputeDeltaNu(const ParallelMatrix& icf,
+                     const double *d, const LLMatrix& lra,
+                     const double *z, const double *x,
+                     int local_num_rows, double *dnu);
 
   // Solve a special form of linear equation using
   // Sherman-Morrison-Woodbury formula
@@ -94,7 +93,7 @@ class PrimalDualIPM {
   // Saves the values of alpha, alpha*, xi, lambda, theta, phi and nu.
   void SaveVariables(const PrimalDualIPMParameter& parameter,
                      int num_local_doc, int num_total_doc, int step,
-                     double* nu, double *x, double *x_star, double *la, 
+                     double nu, double *x, double *x_star, double *la, 
                      double *xi, double* the, double* phi);
 };
 }  // namespace psvm

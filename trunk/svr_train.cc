@@ -220,6 +220,8 @@ void Usage() {
       "      surrogate_gap_threshold) type: double default: 0.001\n"
       "    -sv_threshold (When to consider a variable as a support vector)\n"
       "      type: double default: 0.0001\n"
+      "    -svr_threshold (epsilon value to use in training)\n"
+      "      type: double default: 0.0001\n"
       "    -verbose (Whether to show additional information) type: bool default: false\n"
       "    -zero_threshold (When to consider a variable as zero) type: double\n"
       "      default: 1.0000000000000001e-09\n";
