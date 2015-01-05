@@ -19,6 +19,7 @@ limitations under the License.
 #include <vector>
 #include <utility>
 #include <string>
+#include <cmath>
 
 #include "model.h"
 
@@ -50,7 +51,7 @@ Model::~Model() {
 //
 // In the weighted case, in which positive and negative samples possess
 // different weight, then C equals hyper_parm * weight.
-void Model::CheckSupportVector(double *alpha,
+void Model::CheckSupportVector(double *alpha, double* alpha_star,
                                const Document& doc,
                                const PrimalDualIPMParameter& ipm_parameter) {
   int num_svs = 0;  // number of local support vectors
@@ -59,25 +60,34 @@ void Model::CheckSupportVector(double *alpha,
   // pos_sv[i] stores the index of the i'th support vector.
   int *pos_sv = new int[num_local_rows];
 
+  double* alpha_diff = new double[num_local_rows];
+
   // Get weighted c for positive and negative samples.
   double c_pos = ipm_parameter.hyper_parm * ipm_parameter.weight_positive;
   double c_neg = ipm_parameter.hyper_parm * ipm_parameter.weight_negative;
 
   // Check and regulate support vector values.
   for (int i = 0; i < num_local_rows; ++i) {
-    if (alpha[i] <= ipm_parameter.epsilon_sv) {
+    if (fabs(alpha[i] - alpha_star[i]) <= ipm_parameter.epsilon_sv) {
       // If alpha[i] is smaller than epsilon_sv, then assign alpha[i] to be 0,
       // which means samples with small alpha values are considered as
       // non-support-vectors.
-      alpha[i] = 0;
+      alpha_diff[i] = 0;
     } else {
+      alpha_diff[i] = alpha[i] - alpha_star[i];
       // If alpha[i] is near the weighted hyper parameter, than regulate
       // alpha[i] to be the weighted hyper parameter.
       pos_sv[num_svs++] = i;
       const Sample *ptr_sample = doc.GetLocalSample(i);
       double c = (ptr_sample->value > 0) ? c_pos : c_neg;
-      if ((c - alpha[i]) <= ipm_parameter.epsilon_sv) {
+
+      if ((c - (alpha[i] - alpha_star[i])) <= ipm_parameter.epsilon_sv) {
         alpha[i] = c;
+        ++num_bsv;
+      }
+
+      if ((c + (alpha[i] - alpha_star[i])) <= ipm_parameter.epsilon_sv) {
+        alpha[i] = -c;
         ++num_bsv;
       }
     }
@@ -89,13 +99,8 @@ void Model::CheckSupportVector(double *alpha,
   for (int i = 0; i < num_svs; i++) {
     // sv_alpha stores the production of alpha[i] and label[i].
     // sv_alpha[i] = alpha[i] * label[i].
-    const Sample *ptr_sample = doc.GetLocalSample(pos_sv[i]);
-    if (ptr_sample->value > 0) {
-      support_vector_.sv_alpha.push_back(alpha[pos_sv[i]]);
-    }
-    if (ptr_sample->value < 0) {
-      support_vector_.sv_alpha.push_back(-alpha[pos_sv[i]]);
-    }
+    support_vector_.sv_alpha.push_back(alpha_diff[pos_sv[i]]);
+    
   }
   // If document has samples, then assign sample pointers.
   if (doc.GetLocalNumberRows() != 0) {

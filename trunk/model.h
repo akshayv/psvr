@@ -53,7 +53,7 @@ class Model {
 
   // Uses alpha values to decide which samples are support vectors and stores
   // their information.
-  void CheckSupportVector(double* alpha,
+  void CheckSupportVector(double* alpha, double* alpha_star,
                           const Document& doc,
                           const PrimalDualIPMParameter& ipm_parameter);
 

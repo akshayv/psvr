@@ -78,7 +78,7 @@ class MatrixManipulation {
   // other computers do not have this result. l's space will be allocated
   // inside the function.
   static void ProductMM(const ParallelMatrix &icf, const double *diagonal,
-                        LLMatrix *product);
+                        const double *mult_factor, LLMatrix *product);
 
   // Resolves a'x = b where a is lower triangular matrix, x and b are vectors.
   // It is easy to be solved by backward substitutions.

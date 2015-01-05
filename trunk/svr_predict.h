@@ -43,6 +43,7 @@ struct EvaluationResult {
   // double negative_precision;  // d/(b+d)
   // double negative_recall;     // d/(c+d)
   double accuracy;            // (a+d)/(a+b+c+d)
+  double mean_square_error;
 };
 
 // Predicts the class labels of documents according to the model file.

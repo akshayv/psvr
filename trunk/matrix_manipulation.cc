@@ -250,6 +250,7 @@ void MatrixManipulation::ICF(const Document &doc, const Kernel& kernel,
 
 void MatrixManipulation::ProductMM(const ParallelMatrix &icf,
                                    const double *diagonal,
+                                   const double *mult_factor,
                                    LLMatrix *product) {
   CHECK(product);
   int row = icf.GetNumLocalRows();
@@ -260,7 +261,7 @@ void MatrixManipulation::ProductMM(const ParallelMatrix &icf,
   for (int i = 0; i < column; ++i) {
     offset += i;
     for (int p = 0; p < row; ++p) {
-      buff[p] = icf.Get(p, i) * diagonal[p];
+      buff[p] = icf.Get(p, i) * diagonal[p] * mult_factor[p];
     }
     for (int j = 0; j <= i; ++j) {
       double tmp = 0;

@@ -90,6 +90,7 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
   int num_parsed_samples = 0;
   int num_acceptable_predictions = 0;
   int num_unacceptable_predictions = 0;
+  double square_error = 0.0;
 
   string line;
 
@@ -131,6 +132,7 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
           } else {
             ++num_unacceptable_predictions;
           }
+          square_error += (value[i] - predicted_value) * (value[i] - predicted_value);
         }
 
         // Flush buffer per batch
@@ -197,6 +199,7 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
   // // Record the numbers
   result->num_acceptable_predictions = num_acceptable_predictions;
   result->num_unacceptable_predictions = num_unacceptable_predictions;
+  result->mean_square_error = square_error / num_total_document;
   // result->num_pos_pos = num_positive_positive;
   // result->num_pos_neg = num_positive_negative;
   // result->num_neg_pos = num_negative_positive;
@@ -339,7 +342,8 @@ int main(int argc, char** argv) {
               // << StringPrintf("Negtive      \t%-8d \t%-8d",
               //    result.num_neg_pos, result.num_neg_neg) << endl
               << "========== Predict Accuracy ==========" << endl
-              << "Accuracy          : " << result.accuracy << endl;
+              << "Accuracy          : " << result.accuracy << endl
+              << "Mean Square Error : " << result.mean_square_error << endl;
   //             << "Positive Precision: " << result.positive_precision << endl
   //             << "Positive Recall   : " << result.positive_recall << endl
   //             << "Negative Precision: " << result.negative_precision << endl

@@ -1,4 +1,4 @@
- /*
+/*
 Copyright 2007 Google Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,10 +75,10 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   double *xi = new double[local_num_rows];
   double *the = new double[local_num_rows];
   double *phi = new double[local_num_rows];
-  double *nu = new double[local_num_rows];
+  double nu = 0.0;
   double *value = new double[local_num_rows];
   doc.GetLocalValues(value);
-
+ 
   // xiczstar, lacz, thecz, phizstar here are temporary vectors, used to store intermediate result.
   // Actually, xiczstar stores \frac{\xi}{C - \z_star},
   // lacz stores \frac{\la}{(C - \z)}
@@ -108,7 +108,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   double *dxi = new double[local_num_rows];
   double *dthe = new double[local_num_rows];
   double *dphi = new double[local_num_rows];
-  double *dnu = new double[local_num_rows];
+  double dnu = 0.0;
   double *dx = new double[local_num_rows];
   double *dx_star = new double[local_num_rows];
 
@@ -124,13 +124,13 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   // (8) and (17), the last phase is to complete formulae (17)
   double *d = new double[local_num_rows];
   double *e = new double[local_num_rows];
-  double *f = new double[local_num_rows];
   double *z = new double[local_num_rows];
 
   double t;     // step
   double eta;   // surrogate gap
   double resp;  // primal residual
   double resd;  // dual residual
+  double resd_1;  // dual residual_1
 
   // initializes the primal-dual variables
   // last \lambda, \xi to accelerate Newton method.
@@ -140,18 +140,15 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   //   \xi = \frac{C}{10}
   //   \nu = 0
 
-  //memset(x, 0, sizeof(x[0]) * local_num_rows);
-  //memset(x_star, 0, sizeof(x_star[0]) * local_num_rows);
-  memset(nu, 0, sizeof(nu[0]) * local_num_rows);
+  memset(x, 0, sizeof(x[0]) * local_num_rows);
+  memset(x_star, 0, sizeof(x_star[0]) * local_num_rows);
+  nu = 0.0;
   for (i = 0; i < local_num_rows; ++i) {
     double c = (value[i] > 0) ? c_pos : c_neg;
     la[i] = c / 10.0;
     xi[i] = c / 10.0;
     the[i] = c / 10.0;
     phi[i] = c / 10.0;
-    x_star[i] = c / 10.0;
-    //nu[i] = c / 10.0;
-    x[i] = i%2 == 0 ? c / -100.0 : c/100.0;
   }
   const ParallelMatrix& rbicf = h;
   int rank = rbicf.GetNumCols();
@@ -174,7 +171,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   step = 0;
   if (failsafe) {    
     LoadVariables(parameter, local_num_rows, num_doc_rows,
-                  &step, nu, x, x_star, la, xi, the, phi);
+                  &step, &nu, x, x_star, la, xi, the, phi);
 
   }
   double time_last_save = Timer::GetCurrentTime();
@@ -191,6 +188,8 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     if (myid == 0) {
       cout << StringPrintf("========== Iteration %d ==========\n", step);
     }
+    cout<<"x: "<<x[0]<<" "<<x[1]<<" "<<x[2]<<endl;
+    cout<<"x_star: "<<x_star[0]<<" "<<x_star[1]<<" "<<x_star[2]<<endl;
     TrainingTimeProfile::ipm_misc.Stop();
     // Computing surrogate Gap
     // compute surrogate gap, for definition detail, refer to formulae (11.59)
@@ -210,8 +209,8 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // computes z = H H^T \alpha - tradeoff \alpha
     TrainingTimeProfile::partial_z.Start();
     ComputePartialZ(rbicf, x, parameter.tradeoff, local_num_rows, z);
-    ComputeQ(rbicf, local_num_rows, f);
     TrainingTimeProfile::partial_z.Stop();
+
 
     // computes
     //    z = -z + y - \nu = H H^T \alpha - tradeoff \alpha + y - \nu
@@ -222,28 +221,38 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     TrainingTimeProfile::check_stop.Start();
     resp = 0.0;
     resd = 0.0;
+    resd_1 = 0.0;
     for (i = 0; i < local_num_rows; ++i) {
-      register double temp;
-      z[i] = -1 * z[i] - nu[i] + value[i];
-      temp = the[i] - la[i] + z[i];
+      register double temp, temp_1;
+      z[i] = z[i] + nu - value[i];
+      temp =  la[i] - the[i] + z[i];
+      temp_1 = parameter.epsilon_svr + xi[i] - phi[i];
       resd += temp * temp;
+      resd_1 += temp_1 * temp_1;
       resp += x[i];
-    } 
-    double from_sum[2], to_sum[2];
+    }
+
+    double from_sum[3], to_sum[3];
     from_sum[0] = resp;
     from_sum[1] = resd;
-    mpi->AllReduce(from_sum, to_sum, 2, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    from_sum[2] = resd_1;
+    mpi->AllReduce(from_sum, to_sum, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     resp = fabs(to_sum[0]);
     resd = sqrt(to_sum[1]);
+    resd_1 = sqrt(to_sum[2]);
     if (parameter.verb >= 1 && myid == 0) {
-      cout << StringPrintf("r_pri: %-.10le r_dual: %-.10le\n",
+      cout << StringPrintf("r_pri: %-.10le r_dual: %-.10le r_dual_1: %-.10le\n",
                                 resp,
-                                resd);
+                                resd, 
+                                resd_1);
     }
+
+    cout<<"resp: "<<resp<<" resd: "<<resd<<" resd_1: "<<resd_1<<" eta: "<<eta<<endl;
     // Converge Stop Condition. For more details refer to Algorithm 11.2
     // in Convex Optimization.
     if ((resp <= parameter.feas_thresh) &&
         (resd <= parameter.feas_thresh) &&
+        (resd_1 <= parameter.feas_thresh) &&
         (eta <= parameter.sgap)) {
       break;
     }
@@ -260,8 +269,6 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // note D is a diagonal matrix and its inverse can be easily computed.
     TrainingTimeProfile::update_variables.Start();
 
-    double sumx = 0.0;
-    double temp;
     double m_lx, m_ux, m_lxstar, m_uxstar;
     for (i = 0; i < local_num_rows; ++i) {
       double c = (value[i] > 0) ? c_pos : c_neg;
@@ -281,18 +288,14 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
       thecz[i] = std::max(the[i] / m_lx, parameter.epsilon_x);
       phizstar[i] = std::max(phi[i] / m_lxstar, parameter.epsilon_x);
       
-      temp = lacz[i] + thecz[i];
-      f[i] = f[i] + temp; 
-      d[i] = 1.0 / temp;  // note here compute D^{-1} beforehand
+      d[i] = 1.0 / (lacz[i] + thecz[i]);  // note here compute D^{-1} beforehand
       e[i] = 1.0 / (xiczstar[i] + phizstar[i]);  // note here compute e^{-1} beforehand
-      sumx += x[i];
     }
-    // complete computation of z, note before
     // here z stores part of (17) except
     // the last term. Now complete z with
     // intermediates above, i.e. tlx and tux
     for (i = 0; i < local_num_rows; ++i)
-      z[i] = z[i] + tczp[i] - tczm[i];
+      z[i] = tczp[i] - tczm[i] - z[i];
     TrainingTimeProfile::update_variables.Stop();
     // Newton Step
     //
@@ -310,25 +313,23 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     }
     TrainingTimeProfile::cf.Stop();
 
-    
-    double global_sum = 0.0;
-    mpi->AllReduce(&sumx, &global_sum, 1, MPI_DOUBLE,
-                 MPI_SUM, MPI_COMM_WORLD);
-
     // compute dnu = \Sigma^{-1}z, dx = \Sigma^{-1}(z - y \delta\nu), through
     // linear equations trick or Matrix Inversion Lemma
     TrainingTimeProfile::update_variables.Start();
-    ComputeDeltaNu(f, z, local_num_rows, global_sum, dnu);
+    cout<<"nu: "<<nu<<endl;
+    ComputeDeltaNu(rbicf, d, lra, z, x, local_num_rows, &dnu);
     ComputeDeltaX(rbicf, d, value, dnu, lra, z, local_num_rows, dx);
     lra.Destroy();
+    
     // update dxi, dphi, dthe and dla
     for (i = 0; i < local_num_rows; ++i) {
-      dx_star[i] = (-1 * parameter.epsilon_svr + tzstar[i] - tczstar[i]) / e[i];
+      dx_star[i] = (-1 * parameter.epsilon_svr + tzstar[i] - tczstar[i]) * e[i];
       dla[i] = tczm[i] - la[i] + lacz[i] * dx[i];
       dxi[i] = tczstar[i] - xi[i] + xiczstar[i] * dx_star[i];
       dthe[i] = tczp[i] - the[i] - thecz[i] * dx[i] ;
       dphi[i] = tzstar[i] - phi[i] - phizstar[i] * dx_star[i];
     }
+
     // Line Search
     //
     // line search for primal and dual variable
@@ -343,7 +344,10 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
       if (dx[i]  > 0.0) {
         ap = std::min(ap, (c - x[i]) / dx[i]);
       }
-      if (dx[i]  < 0.0 && x[i] != 0) {
+      if (dx[i]  < 0.0 && x[i] < 0.0) {
+        ap = std::min(ap, -(c - fabs(x[i]))/dx[i]);
+      }
+      if (dx[i]  < 0.0 && x[i] > 0.0) {
         ap = std::min(ap, -x[i]/dx[i]);
       }
       if (dx_star[i]  > 0.0) {
@@ -383,9 +387,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // constraints, we always satisfy f(x^+) \preccurlyeq 0, refer to 11.7.3
     // in Convex Optimization.
     //
-    to_step[0] = 1;
-    to_step[1] = 1;
-    ap = std::min(to_step[0], 1.0) * 0.99;
+    ap = std::min(fabs(to_step[0]), 1.0) * 0.99;
     ad = std::min(to_step[1], 1.0) * 0.99;
     // Update
     //
@@ -393,6 +395,9 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // step and search direction. This completes one Newton's iteration, refer
     // to Algorithm 11.2 in Convex Optimization.
 
+    cout<<"ap: "<<ap<<" ad: "<<ad<<endl;
+    cout<<"dx: "<<dx[0]<<" "<<dx[1]<<" "<<dx[2]<<endl;
+    cout<<"dnu: "<<dnu<<" t: "<<t<<endl;
     for (i = 0; i < local_num_rows; ++i) {
       x[i]  += ap * dx[i];
       x_star[i] += ap * dx_star[i];
@@ -400,8 +405,8 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
       la[i] += ad * dla[i];
       the[i] += ad * dthe[i];
       phi[i] += ad * dphi[i];
-      nu[i] += ad * dnu[i];
     }
+    nu += ad * dnu;    
     TrainingTimeProfile::update_variables.Stop();
   }
   // Not Convergent in specified iterations.
@@ -482,41 +487,6 @@ int PrimalDualIPM::ComputePartialZ(const ParallelMatrix& icf,
   return 0;
 }
 
-int PrimalDualIPM::ComputeQ(const ParallelMatrix& icf,
-                            const int local_num_rows,
-                            double *q) {
-  register int i, j;
-  int p = icf.GetNumCols();
-  double *vz = new double[p];
-  double *vzpart = new double[p];
-  // form vz = V^T*x
-  memset(vzpart, 0, sizeof(vzpart[0]) * p);
-  double sum;
-  for (j = 0; j < p; ++j) {
-    sum = 0.0;
-    for (i = 0; i < local_num_rows; ++i) {
-      sum += icf.Get(i, j);
-    }
-    vzpart[j] = sum;
-  }
-  ParallelInterface *mpi = ParallelInterface::GetParallelInterface();
-  mpi->AllReduce(vzpart, vz, p, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-  // form z = V*vz
-  for (i = 0; i < local_num_rows; ++i) {
-    // Get a piece of inner product
-    sum = 0.0;
-    for (j = 0; j < p; ++j) {
-      sum += icf.Get(i, j) * vz[j];
-    }
-    q[i] = sum;
-  }
-
-  delete [] vz;
-  delete [] vzpart;
-  return 0;
-}
-
 // Compute surrogate gap
 double PrimalDualIPM::ComputeSurrogateGap(double c_pos,
                                         double c_neg,
@@ -534,7 +504,8 @@ double PrimalDualIPM::ComputeSurrogateGap(double c_pos,
   // sgap = -<f(x), [la,xi]>
   for (i = 0; i < local_num_rows; ++i) {
     double c = (value[i] > 0.0) ? c_pos : c_neg;
-    sum += (la[i] + xi[i]) * c;
+    sum += (la[i] + the[i]) * c;
+    sum += (xi[i] + phi[i]) * c;
   }
   for (i = 0; i < local_num_rows; ++i) {
     sum += x[i] * (the[i] - la[i]);
@@ -551,14 +522,14 @@ double PrimalDualIPM::ComputeSurrogateGap(double c_pos,
 // Compute Newton direction of primal variable $\alpha$
 int PrimalDualIPM::ComputeDeltaX(const ParallelMatrix& icf,
                                  const double *d, const double *value,
-                                 const double *dnu, const LLMatrix& lra,
+                                 const double dnu, const LLMatrix& lra,
                                  const double *z, int local_num_rows,
                                  double *dx) {
   register int i;
   double *tz = new double[local_num_rows];
-  // calcuate tz = z-*dnu
+  // calcuate tz = z-dnu
   for (i = 0; i < local_num_rows; ++i)
-    tz[i] = z[i] - dnu[i];
+    tz[i] = z[i] - dnu;
 
   // calculate inv(Q+D)*(z-dnu)
   LinearSolveViaICFCol(icf, d, tz, lra, local_num_rows, dx);
@@ -569,12 +540,42 @@ int PrimalDualIPM::ComputeDeltaX(const ParallelMatrix& icf,
 }
 
 // Compute Newton direction of primal variable $\nu$
-int PrimalDualIPM::ComputeDeltaNu(const double *f, const double *z,
-                                  int local_num_rows, const double global_sum, 
-                                  double *dnu) {
+int PrimalDualIPM::ComputeDeltaNu(const ParallelMatrix& icf, 
+				  const double *d, const LLMatrix& lra, 
+				  const double *z, const double *x,
+          int local_num_rows, double *dnu) {
   register int i;
+  double numerator = 0.0;
+
+  double *num_vect = new double[local_num_rows];
+  double *den_vect = new double[local_num_rows];
+  LinearSolveViaICFCol(icf, d, z, lra, local_num_rows, num_vect);
+
+  double denominator = 0.0;
+  double *onevect = new double[local_num_rows];
   for (i = 0; i < local_num_rows; ++i)
-    dnu[i] = global_sum * f[i] + z[i];
+    onevect[i] = 1.0;
+  
+  LinearSolveViaICFCol(icf, d, onevect, lra, local_num_rows, den_vect);
+
+  for (i = 0; i < local_num_rows; ++i) {
+    numerator += num_vect[i] + x[i];
+    denominator += den_vect[i];
+  }
+
+  double from_sum[2], to_sum[2];
+  from_sum[0] = numerator;
+  from_sum[1] = denominator;
+  ParallelInterface* mpi = ParallelInterface::GetParallelInterface();
+  mpi->AllReduce(from_sum, to_sum, 2,
+                 MPI_DOUBLE, MPI_SUM,
+                 MPI_COMM_WORLD);
+
+  // clean up
+  delete [] den_vect;
+  delete [] num_vect;
+  delete [] onevect;
+  *dnu = to_sum[0]/ to_sum[1];
   return 0;
 }
 
@@ -702,7 +703,7 @@ void PrimalDualIPM::LoadVariables(
 void PrimalDualIPM::SaveVariables(
     const PrimalDualIPMParameter& parameter,
     int num_local_doc, int num_total_doc, int step,
-    double* nu, double *x, double *x_star, double *la,
+    double nu, double *x, double *x_star, double *la,
     double *xi, double* the, double* phi) {
   Timer save_timer;
   save_timer.Start();
@@ -735,8 +736,7 @@ void PrimalDualIPM::SaveVariables(
   CHECK(file->Write(&num_processors, sizeof(num_processors)) ==
         sizeof(num_processors));
 
-  CHECK(file->Write(nu, sizeof(nu[0]) * num_local_doc) ==
-        sizeof(nu[0]) * num_local_doc);
+  CHECK(file->Write(&nu, sizeof(nu)) == sizeof(nu));
   CHECK(file->Write(x, sizeof(x[0]) * num_local_doc) ==
         sizeof(x[0]) * num_local_doc);
   CHECK(file->Write(x_star, sizeof(x_star[0]) * num_local_doc) ==
