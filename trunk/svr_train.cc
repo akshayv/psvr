@@ -162,7 +162,7 @@ double FLAGS_poly_const = 1.0;
 
 // Learning related options
 double FLAGS_zero_threshold = 1.0e-9;
-double FLAGS_svr_threshold = 1.0e-4;
+double FLAGS_svr_threshold = 1.0e-2;
 double FLAGS_sv_threshold = 1.0e-4;
 double FLAGS_hyper_parm = 1.0;
 double FLAGS_positive_weight = 1.0;
