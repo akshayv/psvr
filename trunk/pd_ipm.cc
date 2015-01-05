@@ -194,8 +194,6 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     if (myid == 0) {
       cout << StringPrintf("========== Iteration %d ==========\n", step);
     }
-    cout<<"x: "<<x[0]<<" "<<x[1]<<" "<<x[2]<<" "<<x[17]<<endl;
-    cout<<"x_star: "<<x_star[0]<<" "<<x_star[1]<<" "<<x_star[2]<<" "<<x_star[17]<<endl;
     TrainingTimeProfile::ipm_misc.Stop();
     // Computing surrogate Gap
     // compute surrogate gap, for definition detail, refer to formulae (11.59)
@@ -248,7 +246,6 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
                                 resd_1);
     }
 
-    cout<<"resp: "<<resp<<" resd: "<<resd<<" resd_1: "<<resd_1<<" eta: "<<eta<<endl;
     // Converge Stop Condition. For more details refer to Algorithm 11.2
     // in Convex Optimization.
     if ((resp <= parameter.feas_thresh) &&
@@ -415,11 +412,6 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // Update vectors \alpha, \xi, \lambda, and scalar \nu according to Newton
     // step and search direction. This completes one Newton's iteration, refer
     // to Algorithm 11.2 in Convex Optimization.
-
-    cout<<"dx: "<<dx[0]<<" "<<dx[1]<<" "<<dx[2]<<endl;
-    cout<<"dx_star: "<<dx_star[0]<<" "<<dx_star[1]<<" "<<dx_star[2]<<endl;
-    cout<<"dla: "<<dla[0]<<" "<<dla[1]<<" "<<dla[2]<<endl;
-    cout<<"ap: "<<ap<<" ad: "<<ad<<endl;
     for (i = 0; i < local_num_rows; ++i) {
       x[i]  += ap * dx[i];
       x_star[i] += ap * dx_star[i];
