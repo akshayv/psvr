@@ -342,7 +342,7 @@ int main(int argc, char** argv) {
               // << StringPrintf("Negtive      \t%-8d \t%-8d",
               //    result.num_neg_pos, result.num_neg_neg) << endl
               << "========== Predict Accuracy ==========" << endl
-              << "Accuracy          : " << result.accuracy << endl
+              << "Accuracy (%)      : " << result.accuracy * 100 << endl
               << "Mean Square Error : " << result.mean_square_error << endl;
   //             << "Positive Precision: " << result.positive_precision << endl
   //             << "Positive Recall   : " << result.positive_recall << endl

@@ -412,6 +412,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // Update vectors \alpha, \xi, \lambda, and scalar \nu according to Newton
     // step and search direction. This completes one Newton's iteration, refer
     // to Algorithm 11.2 in Convex Optimization.
+
     for (i = 0; i < local_num_rows; ++i) {
       x[i]  += ap * dx[i];
       x_star[i] += ap * dx_star[i];
@@ -672,7 +673,7 @@ int PrimalDualIPM::LinearSolveViaICFCol(const ParallelMatrix& icf,
   for (j = 0; j < p; ++j) {
     sum = 0.0;
     for (i = 0; i < local_num_rows; ++i) {
-      sum += icf.Get(i, j) * z[i];
+      sum += icf.Get(i, j) * z[i] * mult_factor[i];
     }
     vzpart[j] = sum;
   }
@@ -690,9 +691,9 @@ int PrimalDualIPM::LinearSolveViaICFCol(const ParallelMatrix& icf,
   for (i = 0; i < local_num_rows; ++i) {
     sum = 0.0;
     for (j = 0; j < p; ++j) {
-      sum += icf.Get(i, j) * vz[j] * d[i];
+      sum += icf.Get(i, j) * vz[j] * d[i] ;
     }
-    x[i] = z[i] - sum * mult_factor[i];
+    x[i] = z[i] - sum;
   }
   // clean up
   delete [] z;
