@@ -206,7 +206,7 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
   // result->num_neg_neg = num_negative_negative;
   // result->num_pos = num_positive_positive + num_positive_negative;
   // result->num_neg = num_negative_positive + num_negative_negative;
-  // result->num_total = result->num_pos + result->num_neg;
+  result->num_total = result->num_acceptable_predictions + result->num_unacceptable_predictions;
   // Calculate the precision/recall and accuracy
   // int correct = num_positive_positive + num_negative_negative;
   // int incorrect = num_negative_positive + num_positive_negative;
