@@ -50,23 +50,28 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   double c_neg = parameter.weight_negative * parameter.hyper_parm;
   // Calculate total constraint
   //
-  // Note  0 <= \alpha <= C, transform this
-  // to 2 vector inequations, -\alpha <= 0 (code formulae 1) and
-  // \alpha - C <= 0 (code formulae 2), this is standard
+  // Note  0 <= \alpha <= C, and 0 <= \alpha* <= C,
+  // transform these
+  // to 4 vector inequations, -\alpha <= 0 (code formulae 1),
+  // \alpha - C <= 0 (code formulae 2), -\alpha* <= 0 (code formulae 3) and 
+  // \alpha* - C <= 0 (code formulae 4) this is standard
   // constraint form, refer to Convex
-  // Optimiztion. so total inequality constraints is 2n.
+  // Optimiztion. so total inequality constraints is 4n.
   // note, n is length of vector \alpha.
   int num_constraints = num_doc_rows + num_doc_rows + num_doc_rows + num_doc_rows;
 
   // Allocating memory for variables
   //
-  // Note x here means \alpha in paper. la here is
-  // Langrange multiplier of (code formulae 2), \lambda in WG's paper.
-  // xi here is Langrange multiplier of (code formulae 1), \xi in WG's paper.
-  // nu here is Langrange multiplier of equality constraints, \nu in WG's
+  // Note x here means \alpha in paper and x_star is \alpha*. la here is
+  // Langrange multiplier of (code formulae 2), \lambda in the corrsponding paper.
+  // the here is Langrange multiplier of (code formulae 1), \theta in the 
+  // corresponding paper. xi here is
+  // Langrange multiplier of (code formulae 4), \xi in the paper.
+  // phi here is Langrange multiplier of (code formulae 3), \phi in the paper.
+  // nu here is Langrange multiplier of equality constraints, \nu in the
   // paper, here comes a little bit of explanation why \nu is a scalar instead
   // of a vector. Note, the equality constraint
-  // coeffient matrix but 1-dim y^T,
+  // coeffient matrix but 1-dim 1^T,
   // substitute it to A in Convex Optimiztion (11.54), we know that \nu is a
   // scalar.
   double *x = new double[local_num_rows];
@@ -79,17 +84,24 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   double *value = new double[local_num_rows];
   doc.GetLocalValues(value);
  
-  // xiczstar, lacz, thecz, phizstar here are temporary vectors, used to store intermediate result.
+  // xiczstar, lacz, thecz, phizstar here are temporary vectors, 
+  // used to store intermediate result.
   // Actually, xiczstar stores \frac{\xi}{C - \x_star},
   // lacz stores \frac{\la}{(C - \x)}
   // thecz stores \frac{\the}{(\x)}
   // phizstar stores \frac{\phi}{(\x_star)}
   //
-  // tczm, tczp, tczstar, tzstar here are also temporary vectors.
-  // tczm stores \frac{\1}{C - \x},
-  // tczp stores \frac{\1}{\x}.
-  // tczstar stores \frac{\1}{C - \x_star},
-  // tzstar stores \frac{\}{\x_star}.
+  // tx, tcx, tcxstar, txstar here are also temporary vectors.
+  // tx stores \frac{\1}{t\x},
+  // tcx stores \frac{\1}{t(C - \x)}.
+  // tcxstar stores \frac{\1}{t\x_star},
+  // txstar stores \frac{\1}{t(C-\x_star)}.
+  //
+  // \delta(*) and \rho(*) correspond to intermediate results used in
+  // final computation and correpond to \delta(*) and \rho(*) in the paper 
+  //
+  // Finally, mult corresponds to (1 + \delta / \delta*) used as a 
+  // multiplication factor for Q
   //
   // Note all the division of vectors above is elements-wise division.
   double *xicxstar = new double[local_num_rows];
@@ -109,7 +121,8 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
 
   double *mult = new double[local_num_rows];
 
-  // dla, dxi, dx, dnu are \lamba, \xi, \z, \nu in the Newton Step,
+  // dla, dxi, dthe, dphi, dx, dx_star dnu are 
+  // \lamba, \xi, \theta, \phi, \x, \x_star \nu in the Newton Step,
   // Note dnu is a scalar, all the other are vectors.
   double *dla = new double[local_num_rows];
   double *dxi = new double[local_num_rows];
@@ -119,16 +132,11 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   double *dx = new double[local_num_rows];
   double *dx_star = new double[local_num_rows];
 
-  // d is a diagonal matrix,
-  //   \diag(\frac{\la_i}{C - \z_i} + \frac{\the_i}{C + \z_i}).
-  //
-  // e is a diagonal matrix,
-  //   \diag(\frac{\xi_i}{C - \z_star_i} + \frac{\phi_i}{\z_star_i}).
+  // d is a diagonal matrix and corresponds to 1 / \delta
   //
   // Note in the code, z has two
   // phase of intue, the first result
-  // is Q\z + 1_n + \nu y, part of formulae
-  // (8) and (17), the last phase is to complete formulae (17)
+  // is Q(\rho + \rho*)/\delta* and the final result is z = z + rho
   double *d = new double[local_num_rows];
   double *z = new double[local_num_rows];
 
@@ -139,11 +147,13 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   double resd_1;  // dual residual_1
 
   // initializes the primal-dual variables
-  // last \lambda, \xi to accelerate Newton method.
+  // last \lambda, \xi \the, \phi to accelerate Newton method.
 
-  // initializes \lambda, \xi and \nu
+  // initializes \lambda, \xi, \the, \phi and \nu
   //   \lambda = \frac{C}{10}
   //   \xi = \frac{C}{10}
+  //   \the = \frac{C}{10}
+  //   \phi = \frac{C}{10}  
   //   \nu = 0
 
   memset(x, 0, sizeof(x[0]) * local_num_rows);
@@ -199,7 +209,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // compute surrogate gap, for definition detail, refer to formulae (11.59)
     // in Convex Optimization. Note t and eta
     // have a relation, for more details,
-    // refer to Algorithm 11.2 step 1. in Convext Optimization.
+    // refer to Algorithm 11.2 step 1. in Convex Optimization.
     TrainingTimeProfile::surrogate_gap.Start();
     eta = ComputeSurrogateGap(c_pos, c_neg, value, local_num_rows, x, x_star, la, xi, the, phi);
     // Note m is number of total constraints
@@ -213,10 +223,11 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     ComputePartialRho(rbicf, x, x_star, local_num_rows, parameter.tradeoff, rho_x);
 
     // computes
-    //    z = -z + y - \nu = H H^T \alpha - tradeoff \alpha + y - \nu
-    //    r_{dual} = ||\lambda - \xi + z||_2
-    //    r_{pri} = |y^T \alpha|
-    // here resd coresponds to r_{dual}, resp coresponds to r_{pri},
+    //    \rho = Q(\alpha - \alpha*) = H H^T (\alpha - \alpha*) - tradeoff (\alpha - \alpha*)
+    //    r_{dual} = ||\rho + \epsilon - y + \la - \the + \nu||_2
+    //    r_{dual_1} = ||-\rho + \epsilon + y + \xi - \phi - \nu||_2
+    //    r_{pri} = |1^T (\alpha - \alpha*)|
+    // here resd coresponds to r_{dual}, resd_1 corresponds to r_{dual_1}, resp coresponds to r_{pri},
     // refer to formulae (8) and (11) in WG's paper.
     TrainingTimeProfile::check_stop.Start();
     resp = 0.0;
@@ -259,11 +270,16 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // Update Variables
     //
     // computes
-    //     tlx = \frac{1}{t \alpha}
-    //     tux = \frac{1}{t (C - \alpha)}
-    //     xilx = \frac{\xi}{\alpha}
-    //     laux = \frac{\lambda}{C - \alpha}
-    //     D^(-1) = \diag(\frac{\xi}{\alpha} + \frac{\lambda}{C - \alpha})
+    //     tx = \frac{1}{t \alpha}
+    //     tcx = \frac{1}{t (C - \alpha)}
+    //     tcxstar = \frac{1}{t (C - \alpha*)}
+    //     txstar = \frac{1}{t \alpha*}
+    //     xicxstar = \frac{\xi}{C - \alpha*}
+    //     lacx = \frac{\la}{C - \alpha}
+    //     thex = \frac{\theta}{\alpha}
+    //     phixstar = \frac{\phi}{\alpha*}
+    //
+    //     D^(-1) = \diag(\frac{\la}{C - \alpha} + \frac{\theta}{\alpha})
     // note D is a diagonal matrix and its inverse can be easily computed.
     TrainingTimeProfile::update_variables.Start();
 
@@ -289,7 +305,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
       delta[i] = lacx[i] + thex[i];
       delta_star[i] =  xicxstar[i] + phixstar[i];
 
-      //rho = Q(x - x_star)
+      // At this point, rho was initially pre computed to be Q(\alpha - \alpha*)
       rho_x_star[i] = rho_x[i] - parameter.epsilon_svr - value[i] + nu + txstar[i] - tcxstar[i];
       rho_x[i] = -rho_x[i] - parameter.epsilon_svr + value[i] - nu + tx[i] - tcx[i];
 
@@ -300,7 +316,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     TrainingTimeProfile::update_variables.Stop();
 
     // Check convergence
-    // computes z = H H^T \alpha - tradeoff \alpha
+    // computes z = H H^T ((\rho + \rho*) /(\delta*))
     TrainingTimeProfile::partial_z.Start();
     ComputePartialZ(rbicf, rho_x, rho_x_star, delta_star, local_num_rows, z);
     TrainingTimeProfile::partial_z.Stop();
@@ -309,7 +325,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
 
     // here z stores part of (17) except
     // the last term. Now complete z with
-    // intermediates above, i.e. tlx and tux
+    // intermediates above, i.e. rho
 
 
     for (i = 0; i < local_num_rows; ++i)
@@ -318,8 +334,6 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     // Newton Step
     //
     // calculate icfA as E = I + mult * H^T D H
-
-    // ParallelMatrix::PrintMatrix(rbicf);
 
     TrainingTimeProfile::production.Start();
     MatrixManipulation::ProductMM(rbicf, d, mult, &icfA);
@@ -334,7 +348,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     }
     TrainingTimeProfile::cf.Stop();
 
-    // compute dnu = \Sigma^{-1}z, dx = \Sigma^{-1}(z - y \delta\nu), through
+    // compute dnu through
     // linear equations trick or Matrix Inversion Lemma
     TrainingTimeProfile::update_variables.Start();
     ComputeDeltaNu(rbicf, d, z, mult, x, x_star, delta, delta_star, rho_x, rho_x_star, lra,
@@ -342,7 +356,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     ComputeDeltaX(rbicf, d, mult, value, dnu, z, lra, local_num_rows, dx);
     lra.Destroy();
     
-    // update dxi, dphi, dthe and dla
+    // update dx_star, dxi, dphi, dthe and dla
     for (i = 0; i < local_num_rows; ++i) {
       dx_star[i] = (rho_x[i] + rho_x_star[i] - delta[i] * dx[i])/ delta_star[i];
       dla[i] = tcx[i] - la[i] + lacx[i] * dx[i];
@@ -357,7 +371,8 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     double ap = DBL_MAX;
     double ad = DBL_MAX;
     for (i = 0; i < local_num_rows; ++i) {
-      // make sure \alpha + \delta\alpha \in [\epsilon, C - \epsilon],
+      // make sure \alpha + \delta\alpha and \alpha* + \delta\alpha* 
+      // \in [\epsilon, C - \epsilon],
       // note here deal with positive and negative
       // search directionsituations seperately.
       // Refer to chapter 11 in Convex Optimization for more details.
@@ -375,7 +390,9 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
         ap = std::min(ap, -x_star[i]/dx_star[i]);
       }
       // make sure \xi+ \delta\xi \in [\epsilon, +\inf), also
-      // \lambda + \delta\lambda \in [\epsilon, +\inf).
+      // \lambda + \delta\lambda \in [\epsilon, +\inf),
+      // \theta + \delta\theta \in [\epsilon, +\inf) and
+      // \phi + \delta\phi \in [\epsilon, +\inf).
       // deal with negative search direction.
       // Refer to chapter 11 in Convex Optimization for more details.
       if (dxi[i] < 0.0) {
@@ -409,7 +426,8 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     ad = std::min(to_step[1], 1.0) * 0.99;
     // Update
     //
-    // Update vectors \alpha, \xi, \lambda, and scalar \nu according to Newton
+    // Update vectors \alpha, \alpha*, \xi, \lambda, \theta, \phi
+    // and scalar \nu according to Newton
     // step and search direction. This completes one Newton's iteration, refer
     // to Algorithm 11.2 in Convex Optimization.
 
@@ -473,7 +491,7 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   return 0;
 }
 
-// Compute part of $z$, which is $H^TH\alpha$
+// Compute part of $z$, which is $H^TH(\alpha - \alpha*)$
 int PrimalDualIPM::ComputePartialRho(const ParallelMatrix& icf,
                                    const double *x, const double* x_star,
                                    const int local_num_rows,
@@ -510,7 +528,7 @@ int PrimalDualIPM::ComputePartialRho(const ParallelMatrix& icf,
   return 0;
 }
 
-// Compute part of $z$, which is $H^TH\alpha$
+// Compute part of $z$, which is $H^TH((\rho + \rho*) / \delta*)$
 int PrimalDualIPM::ComputePartialZ(const ParallelMatrix& icf,
                                    const double *rho_x, const double* rho_x_star, 
                                    const double* delta_star,
@@ -591,7 +609,7 @@ int PrimalDualIPM::ComputeDeltaX(const ParallelMatrix& icf,
   for (i = 0; i < local_num_rows; ++i)
     tz[i] = z[i] - dnu;
 
-  // calculate inv(Q+D)*(z-dnu)
+  // calculate inv(Q*mult+D)*(z-dnu)
   LinearSolveViaICFCol(icf, mult_factor, d, tz, lra, local_num_rows, dx);
   
   // clean up
@@ -667,7 +685,7 @@ int PrimalDualIPM::LinearSolveViaICFCol(const ParallelMatrix& icf,
   // calculate z=inv(D)*b[idx]
   for (i = 0; i < local_num_rows; ++i)
     z[i] = b[i] * d[i];
-  // form vz = V^T*z
+  // form vz = V^T*mult_factor*z
   memset(vzpart, 0, sizeof(vzpart[0]) * p);
   double sum;
   for (j = 0; j < p; ++j) {
@@ -702,7 +720,8 @@ int PrimalDualIPM::LinearSolveViaICFCol(const ParallelMatrix& icf,
   return 0;
 }
 
-// Loads the values of alpha, xi, lambda and nu to resume from an interrupted
+// Loads the values of alpha, alpha*, theta, phi,
+// xi, lambda and nu to resume from an interrupted
 // solving process.
 void PrimalDualIPM::LoadVariables(
     const PrimalDualIPMParameter& parameter,
@@ -765,7 +784,8 @@ void PrimalDualIPM::LoadVariables(
   }
 }
 
-// Saves the values of alpha, xi, lambda and nu. num_local_doc, num_total_doc
+// Saves the values of alpha, alpha*, xi, lambda, theta, phi and nu.
+// num_local_doc, num_total_doc
 // and num_processors are also saved to facilitate the loading procedure.
 void PrimalDualIPM::SaveVariables(
     const PrimalDualIPMParameter& parameter,
