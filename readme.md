@@ -1,6 +1,7 @@
 Parallel Support Vector Regerssion
+==================================
 
-Final Year Dissertation by Akshay Viswanathan at National Universoty of Singapore.
+Final Year Dissertation by Akshay Viswanathan at National University of Singapore.
 
 This project corresponds to a Parallel Support Vector Regression Implementation.
 
@@ -10,16 +11,17 @@ To improve scalability and allow usage with real world data, a Parallel SVR algo
 
 The project is developed to be run on a Linux platform. Please ensure that MPI has been installed before proceeding.
 
-To run the project, 
-1) move to /trunk directory and run the command: make
-2) After the project has been made, you can run the training phase by running: mpirun -n {number of cores} ./svr_train {training_file}
-  i) The training by default uses the Gaussian Kernel, to use another, refer to the command line parameters
-3) Prediction can be run by: mpirun -n {number of cores} ./svr_predict {prediction_file}.
-  i) Please note that the number of cores for prediction and training must be the same
+Running the project
+=================== 
+1. move to /trunk directory and run the command: make
+2. After the project has been made, you can run the training phase by running: mpirun -n {number of cores} ./svr_train {training_file}
+  * The training by default uses the Gaussian Kernel, to use another, refer to the command line parameters
+3. Prediction can be run by: mpirun -n {number of cores} ./svr_predict {prediction_file}.
+  * Please note that the number of cores for prediction and training must be the same
   
 For example:
-mpirun -n 2 ./svr_train datasets/pyrim
-mpirun -n 2 ./svr_predict datasets/pyrim
+* mpirun -n 2 ./svr_train datasets/pyrim
+* mpirun -n 2 ./svr_predict datasets/pyrim
 
 
 Please note: This project is currently functional but improvements will be made to it at least until the thesis is complete in April 2015. 
