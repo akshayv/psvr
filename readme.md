@@ -1,4 +1,4 @@
-Parallel Support Vector Regerssion
+Parallel Support Vector Regression
 ==================================
 
 Final Year Dissertation by Akshay Viswanathan at National University of Singapore.
