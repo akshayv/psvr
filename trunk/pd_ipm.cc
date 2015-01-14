@@ -466,10 +466,14 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
   delete [] dx_star;
   delete [] xi;
   delete [] la;
+  delete [] the;
+  delete [] phi;
   delete [] d;
   delete [] z;
   delete [] dxi;
   delete [] dla;
+  delete [] dthe;
+  delete [] dphi;
   delete [] xicxstar;
   delete [] lacx;
   delete [] thex;
