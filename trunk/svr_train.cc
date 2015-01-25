@@ -162,7 +162,7 @@ double FLAGS_poly_const = 1.0;
 
 // Learning related options
 double FLAGS_zero_threshold = 1.0e-9;
-double FLAGS_svr_threshold = 1.0e-2;
+double FLAGS_svr_epsilon = 1.0e-1;
 double FLAGS_sv_threshold = 1.0e-4;
 double FLAGS_hyper_parm = 1.0;
 double FLAGS_positive_weight = 1.0;
@@ -220,7 +220,7 @@ void Usage() {
       "      surrogate_gap_threshold) type: double default: 0.001\n"
       "    -sv_threshold (When to consider a variable as a support vector)\n"
       "      type: double default: 0.0001\n"
-      "    -svr_threshold (epsilon value to use in training)\n"
+      "    -svr_epsilon (epsilon value to use in training)\n"
       "      type: double default: 0.01\n"
       "    -verbose (Whether to show additional information) type: bool default: false\n"
       "    -zero_threshold (When to consider a variable as zero) type: double\n"
@@ -255,8 +255,8 @@ void ParseCommandLine(int* argc, char*** argv) {
       FLAGS_poly_const = atof(param_value);
     } else if (strcmp(param_name, "zero_threshold") == 0) {
       FLAGS_zero_threshold = atof(param_value);
-    } else if (strcmp(param_name, "svr_threshold") == 0) {
-      FLAGS_svr_threshold = atof(param_value);
+    } else if (strcmp(param_name, "svr_epsilon") == 0) {
+      FLAGS_svr_epsilon = atof(param_value);
     } else if (strcmp(param_name, "sv_threshold") == 0) {
       FLAGS_sv_threshold = atof(param_value);
     } else if (strcmp(param_name, "hyper_parm") == 0) {
@@ -317,7 +317,7 @@ int main(int argc, char** argv) {
       (FLAGS_rank_ratio <=0 || FLAGS_rank_ratio > 1) ||
       (FLAGS_kernel_type < 0 || FLAGS_kernel_type > 3) ||
       (FLAGS_zero_threshold <= 0) ||
-      (FLAGS_svr_threshold <= 0) ||
+      (FLAGS_svr_epsilon <= 0) ||
       (FLAGS_sv_threshold <= 0) ||
       (FLAGS_hyper_parm <= 0) ||
       (FLAGS_positive_weight <= 0 || FLAGS_negative_weight <= 0) ||
@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
   kernel.set_coef_lin(FLAGS_poly_coef);
   kernel.set_coef_const(FLAGS_poly_const);
   ipm_parameter.epsilon_x = FLAGS_zero_threshold;
-  ipm_parameter.epsilon_svr = FLAGS_svr_threshold;
+  ipm_parameter.epsilon_svr = FLAGS_svr_epsilon;
   ipm_parameter.epsilon_sv = FLAGS_sv_threshold;
   ipm_parameter.hyper_parm = FLAGS_hyper_parm;
   strncpy(ipm_parameter.model_path, FLAGS_model_path.c_str(),
