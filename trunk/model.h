@@ -33,7 +33,7 @@ struct SupportVector {
   int num_sv;           // number of support vectors
   int num_bsv;          // number of support vectors at boundary
   double b;             // b value of classification function in SVM model
-  vector<double> sv_alpha;        // the alpha values of the support vectors
+  vector<double> sv_alpha_diff;        // the alpha diff values of the support vectors
   vector<const Sample*> sv_data;  // the pointers to support vectors,
                                   // used only in training phase.
   vector<Sample> sv_data_test;    // support vetor samples,

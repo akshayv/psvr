@@ -67,7 +67,6 @@ void SvrPredictor::SaveTimeInfo(const char *path, const char* file_name) {
 void SvrPredictor::PredictDocument(const char* testdata_filename,
                                    const char* predict_filename,
                                    int chunk_size,
-                                   double delta_error,
                                    EvaluationResult *result) {
   ParallelInterface* interface = ParallelInterface::GetParallelInterface();
   int myid = interface->GetProcId();
@@ -84,13 +83,13 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
   // int num_positive_positive = 0;  // Number of samples whose original class
   // // label is positive and predicted as
   // // positive.
-  // int num_positive_negative = 0;
-  // int num_negative_positive = 0;
-  // int num_negative_negative = 0;
   int num_parsed_samples = 0;
-  int num_acceptable_predictions = 0;
-  int num_unacceptable_predictions = 0;
   double square_error = 0.0;
+  double sumv = 0.0;
+  double sumy = 0.0;
+  double sumvy = 0.0;
+  double sumvv = 0.0;
+  double sumyy = 0.0;
 
   string line;
 
@@ -127,12 +126,12 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
           CHECK(outputbuffer_predict->Write(sz_line, b) == b);
 
           // Updates the counters
-          if(abs(value[i] - predicted_value) <= delta_error) {
-            ++num_acceptable_predictions;
-          } else {
-            ++num_unacceptable_predictions;
-          }
           square_error += (value[i] - predicted_value) * (value[i] - predicted_value);
+          sumv += predicted_value;
+          sumy += value[i];
+          sumvy += predicted_value * value[i];
+          sumvv += predicted_value * predicted_value;
+          sumyy += value[i] * value[i];
         }
 
         // Flush buffer per batch
@@ -175,7 +174,7 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
     double temp;
     for (int j = 0; j < support_vector->num_sv; ++j) {
       temp = kernel->CalcKernel(sample, support_vector->sv_data_test[j]);
-      predicted_value += support_vector->sv_alpha[j] * temp;
+      predicted_value += support_vector->sv_alpha_diff[j] * temp;
     }
     local_prediction[num_parsed_samples] = predicted_value;
 
@@ -197,29 +196,11 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
 
   // Computes some statistics
   // // Record the numbers
-  result->num_acceptable_predictions = num_acceptable_predictions;
-  result->num_unacceptable_predictions = num_unacceptable_predictions;
   result->mean_square_error = square_error / num_total_document;
-  // result->num_pos_pos = num_positive_positive;
-  // result->num_pos_neg = num_positive_negative;
-  // result->num_neg_pos = num_negative_positive;
-  // result->num_neg_neg = num_negative_negative;
-  // result->num_pos = num_positive_positive + num_positive_negative;
-  // result->num_neg = num_negative_positive + num_negative_negative;
-  result->num_total = result->num_acceptable_predictions + result->num_unacceptable_predictions;
-  // Calculate the precision/recall and accuracy
-  // int correct = num_positive_positive + num_negative_negative;
-  // int incorrect = num_negative_positive + num_positive_negative;
-  result->accuracy = static_cast<double>(num_acceptable_predictions) / (num_acceptable_predictions + num_unacceptable_predictions);
-  // result->positive_precision = static_cast<double>(num_positive_positive) /
-  //     (num_positive_positive + num_negative_positive);
-  // result->positive_recall = static_cast<double>(num_positive_positive) /
-  //     (num_positive_positive + num_positive_negative);
-  // result->negative_precision = static_cast<double>(num_negative_negative) /
-  //     (num_positive_negative + num_negative_negative);
-  // result->negative_recall = static_cast<double>(num_negative_negative) /
-  //     (num_negative_positive + num_negative_negative);
-}
+  result->squared_correlation_coefficient = ((num_total_document*sumvy-sumv*sumy)*(num_total_document*sumvy-sumv*sumy))/
+         ((num_total_document*sumvv-sumv*sumv)*(num_total_document*sumyy-sumy*sumy));
+  result->normalized_mean_square_error = square_error  * num_total_document / (sumy * sumv);
+  }
 }
 
 using namespace psvr;
@@ -229,7 +210,6 @@ using namespace psvr;
 
 string FLAGS_model_path = ".";
 string FLAGS_output_path = ".";
-double FLAGS_delta_error = 0.1; // The error allowed in output prediction
 int FLAGS_batch_size = 10000;
 //=============================================================================
 
@@ -245,9 +225,7 @@ void Usage() {
       "    -model_path (Directory where to load the SVR model.) type: string\n"
       "      default: .\n"
       "    -output_path (Directory where to save the predict result.) type: string\n"
-      "      default: .\n"
-      "    -delta_error (The allowed delta error.) type: double\n"
-      "      default: 0.1\n";
+      "      default: .\n";
   cerr << msg;
 }
 
@@ -268,9 +246,7 @@ void ParseCommandLine(int* argc, char*** argv) {
       FLAGS_model_path = string(param_value);
     } else if (strcmp(param_name, "output_path") == 0) {
       FLAGS_output_path = string(param_value);
-    } else if (strcmp(param_name, "delta_error") == 0) {
-      FLAGS_delta_error = atof(param_value);
-    }else {
+    } else {
       cerr << "Unknown parameter " << param_name << endl;
       Usage();
       exit(2);
@@ -311,8 +287,7 @@ int main(int argc, char** argv) {
   PredictingTimeProfile::predict.Start();
   predictor.PredictDocument(data_file.c_str(),
                             (FLAGS_output_path + "/PredictResult").c_str(),
-                            FLAGS_batch_size, FLAGS_delta_error, 
-                            &result);
+                            FLAGS_batch_size, &result);
   PredictingTimeProfile::predict.Stop();
   PredictingTimeProfile::predict.Minus(PredictingTimeProfile::read_test_doc);
 
@@ -332,22 +307,10 @@ int main(int argc, char** argv) {
     // Print timing info
     cout << endl
               << predictor.PrintTimeInfo()
-              << "========== Predict Matrix ==========" << endl
-              << "Total: " << result.num_total << "  "
-              << "Acceptable: " << result.num_acceptable_predictions << "  "
-              << "Unacceptable: " << result.num_unacceptable_predictions << endl
-              // << "Real\\Predict\tPositive \tNegative" << endl
-              // << StringPrintf("Positive     \t%-8d \t%-8d",
-              //    result.num_pos_pos, result.num_pos_neg) << endl
-              // << StringPrintf("Negtive      \t%-8d \t%-8d",
-              //    result.num_neg_pos, result.num_neg_neg) << endl
-              << "========== Predict Accuracy ==========" << endl
-              << "Accuracy (%)      : " << result.accuracy * 100 << endl
-              << "Mean Square Error : " << result.mean_square_error << endl;
-  //             << "Positive Precision: " << result.positive_precision << endl
-  //             << "Positive Recall   : " << result.positive_recall << endl
-  //             << "Negative Precision: " << result.negative_precision << endl
-  //             << "Negative Recall   : " << result.negative_recall << endl;
+              << "============== Predict Accuracy =============" << endl
+              << "Mean Square Error               : " << result.mean_square_error << endl
+              << "Squared Correlation Coefficient : " << result.squared_correlation_coefficient << endl
+              << "Normalized Mean Square Error    : " << result.normalized_mean_square_error << endl;
   }
 
   // Finalizes the parallel computing environment
