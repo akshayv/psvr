@@ -30,7 +30,8 @@ namespace psvr {
 struct EvaluationResult {
   int num_total;
   double normalized_mean_square_error;           
-  double mean_square_error;
+  double mean_square_error;       
+  double root_mean_square_error;
   double squared_correlation_coefficient;
 };
 

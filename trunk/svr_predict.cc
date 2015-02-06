@@ -197,6 +197,7 @@ void SvrPredictor::PredictDocument(const char* testdata_filename,
   // Computes some statistics
   // // Record the numbers
   result->mean_square_error = square_error / num_total_document;
+  result->root_mean_square_error = sqrt(square_error / num_total_document);
   result->squared_correlation_coefficient = ((num_total_document*sumvy-sumv*sumy)*(num_total_document*sumvy-sumv*sumy))/
          ((num_total_document*sumvv-sumv*sumv)*(num_total_document*sumyy-sumy*sumy));
   result->normalized_mean_square_error = square_error  * num_total_document / (sumy * sumv);
@@ -309,6 +310,7 @@ int main(int argc, char** argv) {
               << predictor.PrintTimeInfo()
               << "============== Predict Accuracy =============" << endl
               << "Mean Square Error               : " << result.mean_square_error << endl
+              << "Root Mean Square Error          : " << result.root_mean_square_error << endl
               << "Squared Correlation Coefficient : " << result.squared_correlation_coefficient << endl
               << "Normalized Mean Square Error    : " << result.normalized_mean_square_error << endl;
   }

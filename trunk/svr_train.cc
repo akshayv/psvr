@@ -194,7 +194,7 @@ void Usage() {
       "      default: 1.0000000000000001e-05\n"
       "    -failsafe (Whether to enable failsafe feature.) type: bool default: false\n"
       "    -feasible_threshold (Necessary convergance conditions: primal residual <\n"
-      "      feasible_threshold and dual residual < dual residual) type: double\n"
+      "      feasible_threshold and dual residual < feasible_threshold) type: double\n"
       "      default: 0.001\n"
       "    -gamma (Gamma value in Gaussian and Laplacian kernel) type: double\n"
       "      default: 1\n"
