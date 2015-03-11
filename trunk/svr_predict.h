@@ -1,5 +1,4 @@
 /*
-Copyright 2007 Google Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,21 +28,10 @@ namespace psvr {
 //    Negative                     c         d
 struct EvaluationResult {
   int num_total;
-  int num_acceptable_predictions;
-  int num_unacceptable_predictions;
-  // int num_pos;
-  // int num_neg;
-  // int num_pos_pos;
-  // int num_pos_neg;
-  // int num_neg_pos;
-  // int num_neg_neg;
-
-  // double positive_precision;  // a/(a+c)
-  // double positive_recall;     // a/(a+b)
-  // double negative_precision;  // d/(b+d)
-  // double negative_recall;     // d/(c+d)
-  double accuracy;            // (a+d)/(a+b+c+d)
-  double mean_square_error;
+  double normalized_mean_square_error;           
+  double mean_square_error;       
+  double root_mean_square_error;
+  double squared_correlation_coefficient;
 };
 
 // Predicts the class labels of documents according to the model file.
@@ -62,7 +50,6 @@ class SvrPredictor {
   void PredictDocument(const char* testdata_filename,
                        const char* predict_filename,
                        int chunk_size,
-                       double delta_error,
                        EvaluationResult *result);
 
   // Prints the time information of current processor.

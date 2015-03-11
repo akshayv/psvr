@@ -1,5 +1,4 @@
 /*
-Copyright 2007 Google Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,7 +32,7 @@ struct SupportVector {
   int num_sv;           // number of support vectors
   int num_bsv;          // number of support vectors at boundary
   double b;             // b value of classification function in SVM model
-  vector<double> sv_alpha;        // the alpha values of the support vectors
+  vector<double> sv_alpha_diff;        // the alpha diff values of the support vectors
   vector<const Sample*> sv_data;  // the pointers to support vectors,
                                   // used only in training phase.
   vector<Sample> sv_data_test;    // support vetor samples,

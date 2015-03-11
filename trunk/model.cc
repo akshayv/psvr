@@ -1,5 +1,4 @@
 /*
-Copyright 2007 Google Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -69,8 +68,9 @@ void Model::CheckSupportVector(double *alpha, double* alpha_star,
   // Check and regulate support vector values.
   for (int i = 0; i < num_local_rows; ++i) {
     if (fabs(alpha[i] - alpha_star[i]) <= ipm_parameter.epsilon_sv) {
-      // If alpha[i] is smaller than epsilon_sv, then assign alpha[i] to be 0,
-      // which means samples with small alpha values are considered as
+      // If alpha[i] - alpha_star[i] is smaller than epsilon_sv, then 
+      // assign alpha[i] - alpha_star[i] to be 0,
+      // which means samples with small alpha_diff values are considered as
       // non-support-vectors.
       alpha_diff[i] = 0;
     } else {
@@ -82,12 +82,12 @@ void Model::CheckSupportVector(double *alpha, double* alpha_star,
       double c = (ptr_sample->value > 0) ? c_pos : c_neg;
 
       if ((c - (alpha[i] - alpha_star[i])) <= ipm_parameter.epsilon_sv) {
-        alpha[i] = c;
+        alpha_diff[i] = c;
         ++num_bsv;
       }
 
       if ((c + (alpha[i] - alpha_star[i])) <= ipm_parameter.epsilon_sv) {
-        alpha[i] = -c;
+        alpha_diff[i] = -c;
         ++num_bsv;
       }
     }
@@ -99,7 +99,7 @@ void Model::CheckSupportVector(double *alpha, double* alpha_star,
   for (int i = 0; i < num_svs; i++) {
     // sv_alpha stores the production of alpha[i] and label[i].
     // sv_alpha[i] = alpha[i] * label[i].
-    support_vector_.sv_alpha.push_back(alpha_diff[pos_sv[i]]);
+    support_vector_.sv_alpha_diff.push_back(alpha_diff[pos_sv[i]]);
     
   }
   // If document has samples, then assign sample pointers.
@@ -199,7 +199,7 @@ void Model::SaveChunks(const char* str_directory, const char* model_name) {
   for (int i = 0; i < support_vector_.num_sv; i++) {
     ptr_sample = support_vector_.sv_data[i];
     // first, alpha value with label
-    obuf->WriteString(StringPrintf("%.8lf", support_vector_.sv_alpha[i]));
+    obuf->WriteString(StringPrintf("%.8lf", support_vector_.sv_alpha_diff[i]));
     // then the value
     obuf->WriteString(StringPrintf(" %.8lf", ptr_sample->value));
     // then, support vector sample
@@ -336,7 +336,7 @@ void Model::LoadChunks(const char*str_directory, const char* model_name) {
     buf = line.c_str();
     double alpha, value;
     SplitOneDoubleToken(&buf, " ", &alpha);
-    support_vector_.sv_alpha.push_back(alpha);
+    support_vector_.sv_alpha_diff.push_back(alpha);
 
     SplitOneDoubleToken(&buf, " ", &value);
 
@@ -481,7 +481,7 @@ void Model::ComputeB(const PrimalDualIPMParameter& ipm_parameter) {
     // Get local b values
     double sum = 0;
     for (int k = 0; k < support_vector_.num_sv; k++) {
-      sum += support_vector_.sv_alpha[k] *
+      sum += support_vector_.sv_alpha_diff[k] *
           kernel_.CalcKernel(*support_vector_.sv_data[k],
                              *selected_sv[i]);
     }
