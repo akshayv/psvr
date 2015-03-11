@@ -92,39 +92,40 @@ void SvrTrainer::TrainModel(const Document& doc, const Kernel& kernel,
 
 std::string SvrTrainer::PrintTimeInfo() {
   std::string str = "========== Training Time Statistics ==========\n";
-  str += " Total                                    : "
+  str += " Total                                       : "
          + TrainingTimeProfile::total.PrintInfo() + "\n";
-  str += " 1. Read Document                         : "
+  str += " 1. Read Document                            : "
          + TrainingTimeProfile::read_doc.PrintInfo() + "\n";
-  str += " 2. Train Model                           : "
+  str += " 2. Train Model                              : "
          + TrainingTimeProfile::train_model.PrintInfo() + "\n";
-  str += "    2.1 ICF                               : "
+  str += "    2.1 ICF                                  : "
          + TrainingTimeProfile::icf.PrintInfo() + "\n";
-  str += "    2.2 IPM                               : "
+  str += "    2.2 IPM                                  : "
          + TrainingTimeProfile::ipm.PrintInfo() + "\n";
-  str += "        2.2.1 Compute Surrogate Gap       : "
+  str += "        2.2.1 Compute Surrogate Gap          : "
          + TrainingTimeProfile::surrogate_gap.PrintInfo() + "\n";
-  str += "        2.2.2 H * H^T * alpha             : "
+  str += "        2.2.2 H * H^T * alpha                : "
          + TrainingTimeProfile::partial_z.PrintInfo() + "\n";
-  str += "        2.2.3 E = I + H^T * D * H         : "
+  str += "        2.2.3 H * H^T * (alpha - alpha_star) : "
+         + TrainingTimeProfile::partial_rho.PrintInfo() + "\n";
+  str += "        2.2.4 E = I + H^T * D * H            : "
          + TrainingTimeProfile::production.PrintInfo() + "\n";
-  str += "        2.2.4 CF                          : "
+  str += "        2.2.5 CF                             : "
          + TrainingTimeProfile::cf.PrintInfo() + "\n";
-  str += "        2.2.5 Compute and Update Variables: "
+  str += "        2.2.6 Compute and Update Variables   : "
          + TrainingTimeProfile::update_variables.PrintInfo() + "\n";
-  str += "        2.2.6 Check Stop Condition        : "
+  str += "        2.2.7 Check Stop Condition           : "
          + TrainingTimeProfile::check_stop.PrintInfo() + "\n";
-  str += "        2.2.7 Check SV                    : "
+  str += "        2.2.8 Check SV                       : "
          + TrainingTimeProfile::check_sv.PrintInfo() + "\n";
-  str += "        2.2.8 Misc.                       : "
+  str += "        2.2.9 Misc.                          : "
          + TrainingTimeProfile::ipm_misc.PrintInfo() + "\n";
-  str += "    2.3 Estimate b                        : "
+  str += "    2.3 Estimate b                           : "
          + TrainingTimeProfile::compute_b.PrintInfo() + "\n";
-  str += " 3. Store Model                           : "
+  str += " 3. Store Model                              : "
          + TrainingTimeProfile::store_model.PrintInfo() + "\n";
 
   return str;
-}
 
 void SvrTrainer::SaveTimeInfo(const char *path, const char* file_name) {
   ParallelInterface *mpi = ParallelInterface::GetParallelInterface();
