@@ -126,6 +126,7 @@ std::string SvrTrainer::PrintTimeInfo() {
          + TrainingTimeProfile::store_model.PrintInfo() + "\n";
 
   return str;
+}
 
 void SvrTrainer::SaveTimeInfo(const char *path, const char* file_name) {
   ParallelInterface *mpi = ParallelInterface::GetParallelInterface();
