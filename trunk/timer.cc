@@ -33,6 +33,7 @@ Timer TrainingTimeProfile::ipm;
 Timer TrainingTimeProfile::compute_b;
 Timer TrainingTimeProfile::store_model;
 Timer TrainingTimeProfile::surrogate_gap;
+Timer TrainingTimeProfile::partial_rho;
 Timer TrainingTimeProfile::partial_z;
 Timer TrainingTimeProfile::check_stop;
 Timer TrainingTimeProfile::production;

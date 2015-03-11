@@ -220,7 +220,9 @@ int PrimalDualIPM::Solve(const PrimalDualIPMParameter& parameter,
     TrainingTimeProfile::surrogate_gap.Stop();
 
 
+    TrainingTimeProfile::partial_rho.Start();
     ComputePartialRho(rbicf, x, x_star, local_num_rows, parameter.tradeoff, rho_x);
+    TrainingTimeProfile::partial_rho.Stop();
 
     // computes
     //    \rho = Q(\alpha - \alpha*) = H H^T (\alpha - \alpha*) - tradeoff (\alpha - \alpha*)

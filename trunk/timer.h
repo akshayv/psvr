@@ -113,6 +113,7 @@ struct TrainingTimeProfile {
   // IPM details
   static Timer surrogate_gap;
   static Timer partial_z;
+  static Timer partial_rho;
   static Timer check_stop;
   static Timer production;
   static Timer cf;
