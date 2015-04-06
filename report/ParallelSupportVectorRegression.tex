@@ -138,7 +138,7 @@ Ideally, SVR would scale comfortably with the increase in data instances to prod
 
 These limitations make it increasingly impossible to use the standard SVR algorithm for use with larger datasets; The larger datasets correspond to real-world requirements and situations and an algorithm which is unable to cater to these requirements would be highly ineffective.
 \subsection{Objective}
-In this paper we will propose a parallel SVR algorithm (PSVR) which utilizes supercomputing clusters to allow SVR to effectively scale with larger datasets.
+In this paper a parallel SVR algorithm (PSVR) will be proposed which utilizes supercomputing clusters to allow SVR to effectively scale with larger datasets.
 Specifically, the following questions will be addressed:
 \newline\newline
 \setlength{\leftskip}{3cm}
@@ -580,7 +580,7 @@ Table 2. Speedup of process using PSVR. ($p$ is set to the corresponding value i
 The speedup observed tabulated in Table 2 have been plotted in the following graphs.
 \newline\newline
 \begin{tikzpicture}
-\begin{axis}[title={SARCOS},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
+\begin{axis}[title={(a) SARCOS},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]
     coordinates {(1,1)(2, 1.94)(5, 4.55)(10, 8.06)(20, 13.4)(40, 18.8)(50, 19.5)};
 \addplot[color=blue,mark=*,]
@@ -589,7 +589,7 @@ The speedup observed tabulated in Table 2 have been plotted in the following gra
 \end{axis}
 \end{tikzpicture}
 \begin{tikzpicture}
-\begin{axis}[title={AIMPEAK},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
+\begin{axis}[title={(b) AIMPEAK},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]
     coordinates {(1,1)(2, 1.89)(5, 3.71)(10, 6.33)(20, 9.12)(40, 11.10)(50, 11.81)};
 \addplot[color=blue,mark=*,]
@@ -598,7 +598,7 @@ The speedup observed tabulated in Table 2 have been plotted in the following gra
 \end{axis}
 \end{tikzpicture}
 \begin{tikzpicture}
-\begin{axis}[title={HADSST},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,
+\begin{axis}[title={(c) HADSST},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,
     xmajorgrids=true,
     grid style=dashed,
 ] 
@@ -612,7 +612,7 @@ The speedup observed tabulated in Table 2 have been plotted in the following gra
 \end{axis}
 \end{tikzpicture}
 \begin{tikzpicture}
-\begin{axis}[title={Housing},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,
+\begin{axis}[title={(d) Housing},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,
     xmajorgrids=true,
     grid style=dashed,
 ] 
@@ -626,7 +626,7 @@ The speedup observed tabulated in Table 2 have been plotted in the following gra
 \end{axis}
 \end{tikzpicture}
 \newline
-\centerline{Figure 1. Speedup for various datasets}
+\centerline{Figure 4.1. Speedup for various datasets}
 \newline\newline
 We can make 3 observations from the tabulation and graphs,
 \begin{enumerate}[label=(\alph*)]
@@ -637,10 +637,10 @@ We can make 3 observations from the tabulation and graphs,
 Points (a) and (b) are analyzed in detail in the following section.\\
 The reasoning behind point (c) is intuitive: depending on the nature of the dataset, the number of iterations required for the convergence of the solution varies, and larger number of iterations implies increased training time. Increase in the number of iterations would also mean that the total communication overhead incurred and executions of the sequential portion of the code (see Section \ref{Cholesky Factorization}) increases leading to decrease in speedup.
 \newline\newline
-{\bf From Figure 1 and Table 2, it can be observed that although the speedup is not ideal, PSVR is able to parallelize the SVR algorithm and scales with increased number of machines used, more effectively so for larger datasets.}
+{\bf From Figure 4.1 and Table 4.2, it can be observed that although the speedup is not ideal, PSVR is able to parallelize the SVR algorithm and scales with increased number of machines used, more effectively so for larger datasets.}
 \subsection{Overhead}
 \label{Overhead}
-From the graphs in Figure 1, we can see that for each of the datasets, the speedups are not ideal, and that the individual speedups vary between datasets.
+From the graphs in Figure 4.1, we can see that for each of the datasets, the speedups are not ideal, and that the individual speedups vary between datasets.
 {\bf The following section attempts to explain the overheads incurred by PSVR which affect the overall speedup of the process.}
 \newline\newline
 Usage of parallel computing in PSVR incurs two types of overheads, Communication overhead and Synchronization overhead.
@@ -648,14 +648,14 @@ Usage of parallel computing in PSVR incurs two types of overheads, Communication
 \item Communication overhead corresponds to the overhead incurred due to broadcast and transmission of messages over the network as part of MPI. 
 \newline
 As the number of machines used increases, the communication over the network at each step increases as well, implying more Communication overhead with increase number of machines.The increase in overhead could be minimal\footnotemark or substantial depending on the underlying architecture of the supercomputing cluster.
- \footnotetext{In Figure 2, we notice that the Communication overhead rises significantly until m = 5 and then the increase is minor; The collective operations using MPI3 are substantially faster for processors on the same physical machine (since network traffic is minimized) and after m $\geq$ 5, while the number of processors per physical machines used increases, the number of physical machines used remains the same, causing the overhead to increase minimally for subsequent values of m(since inter-processor communication does not rely on the network).}
+ \footnotetext{In Figure 4.2, we notice that the Communication overhead rises significantly until m = 5 and then the increase is minor; The collective operations using MPI3 are substantially faster for processors on the same physical machine (since network traffic is minimized) and after m $\geq$ 5, while the number of processors per physical machines used increases, the number of physical machines used remains the same, causing the overhead to increase minimally for subsequent values of m(since inter-processor communication does not rely on the network).}
 \item Synchronization overhead occurs due to non-identical configuration of the machines used. Various machines are capable of executing the program at various speeds and after each step in PSVR, a synchronization occurs (using MPIBarrier) which ensures that every machine has reached the same point of execution (to prevent the situation that one of the machines fails but the other machines aren't notified).
 \end{itemize}
 The graphs below plot the Communication and Synchrnoization overhead for each of the datasets using varying number of machines.
 
 \begin{tikzpicture}
  \begin{groupplot}[group style={group size= 2 by 1},height=7cm,width=8.5cm]
-  \nextgroupplot [title={Communication Overhead},xlabel={Machines used},xmin=0, xmax=60,ymin=0, ymax=25,xtick={0,10,20,30,40,50, 60},ytick={0,5,10,15,20, 25},legend style={at={(0.5,0.5)},anchor=west},xmajorgrids=true,grid style=dashed,] 
+  \nextgroupplot [title={(a) Communication Overhead},xlabel={Machines used},xmin=0, xmax=60,ymin=0, ymax=25,xtick={0,10,20,30,40,50, 60},ytick={0,5,10,15,20, 25},legend style={at={(0.5,0.5)},anchor=west},xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]
     coordinates {
     (1,0)(2, 1.49)(5, 4)(10, 4.3)(20, 4)(40, 4.2)(50, 4.32)
@@ -673,7 +673,7 @@ The graphs below plot the Communication and Synchrnoization overhead for each of
     };
     \label{plots:housing}
     \coordinate (top) at (rel axis cs:0,1);% coordinate at top of the first plot
-    \nextgroupplot [title={Synchronization Overhead},xlabel={Machines used},,xmin=0, xmax=60,ymin=0, ymax=40,xtick={0,10,20,30,40,50, 60},ytick={0, 10,20, 30, 40},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
+    \nextgroupplot [title={(b) Synchronization Overhead},xlabel={Machines used},,xmin=0, xmax=60,ymin=0, ymax=40,xtick={0,10,20,30,40,50, 60},ytick={0, 10,20, 30, 40},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]coordinates {(1,0)(2, 0.62)(5, 8.3)(10, 10.4)(20, 10.6)(40, 6.4)(50, 8.12)};
 \addplot[color=green,mark=triangle*,]
 coordinates {(1,0)(2, 2.57)(5, 12.5)(10, 22)(20, 23)(40, 25)(50, 23)};
@@ -704,7 +704,7 @@ coordinates {(1,0)(2, 2.57)(5, 12.5)(10, 22)(20, 23)(40, 25)(50, 23)};
     \ref{plots:housing}& Housing\\};
 \end{tikzpicture}
 \newline
-\centerline{Figure 2. Overheads incurred for datasets}
+\centerline{Figure 4.2. Overheads incurred for datasets}
 \newline\newline
 We can make certain observations from these graphs.
 \begin{enumerate}[label=(\alph*)]
@@ -717,7 +717,7 @@ A cost not considered until now is the cost for the sequential part of the progr
 \newline
 \newline
 \begin{tikzpicture}
-\begin{axis}[title={SARCOS},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
+\begin{axis}[title={(a) SARCOS},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]
     coordinates {
     (1,1)(2, 1.99)(5, 4.90)(10, 8.88)(20, 18.40)(40, 30.85)(50, 33.80)
@@ -732,7 +732,7 @@ A cost not considered until now is the cost for the sequential part of the progr
 \end{axis}
 \end{tikzpicture}
 \begin{tikzpicture}
-\begin{axis}[title={AIMPEAK},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
+\begin{axis}[title={(b) AIMPEAK},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]coordinates {(1,1)(2, 2)(5, 4.46)(10, 9.51)(20, 18.21)(40, 29.95)(50, 35.12)};
 \addplot[color=green,mark=triangle*,]
 coordinates {(1,1)(2, 1.89)(5, 3.71)(10, 6.33)(20, 9.12)(40, 11.10)(50, 11.81)};
@@ -742,7 +742,7 @@ coordinates {(1,1)(2, 1.89)(5, 3.71)(10, 6.33)(20, 9.12)(40, 11.10)(50, 11.81)};
 \end{axis}
 \end{tikzpicture}
 \begin{tikzpicture}
-\begin{axis} [title={HADSST},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
+\begin{axis} [title={(c) HADSST},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]coordinates {(1,1)(2, 1.88)(5, 5.10)(10, 9.1)(20, 15.88)(40, 28.85)(50, 34.28)};
 \addplot[color=green,mark=triangle*,] coordinates {(1,1)(2, 1.87)(5, 4.74)(10, 8.65)(20, 14.55)(40, 24.70)(50, 28.47)};
 \addplot[color=blue,mark=*,]
@@ -751,7 +751,7 @@ coordinates {(1,1)(2, 1.89)(5, 3.71)(10, 6.33)(20, 9.12)(40, 11.10)(50, 11.81)};
 \end{axis}
 \end{tikzpicture}
 \begin{tikzpicture}
-\begin{axis} [title={Housing},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
+\begin{axis} [title={(d) Housing},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]coordinates {(1,1)(2, 1.92)(5, 5.10)(10, 8.96)(20, 20.14)(40, 34.24)(50, 41.27)};
 \addplot[color=green,mark=triangle*,] coordinates {(1,1)(2, 1.91)(5, 5.03)(10, 8.72)(20, 18.86)(40, 30.67)(50, 36.02)};
 \addplot[color=blue,mark=*,]
@@ -760,14 +760,15 @@ coordinates {(1,1)(2, 1.89)(5, 3.71)(10, 6.33)(20, 9.12)(40, 11.10)(50, 11.81)};
 \end{axis}
 \end{tikzpicture}
 \ \\
-\centerline{Figure 3. Speedup for various datasets excluding Synchronous component.}
+\centerline{Figure 4.3. Speedup for various datasets excluding Synchronous component.}
 \newline\newline
-From these graphs, we still see that none of these speedup curves follow the ideal speedup curve. The deviation from the ideal speedup in these graphs is due to the Synchronization and Communication overheads.
+From the graphs in Figure 4.3, we see even if we disregard the sequential portions of the program, none of these speedup curves follow the ideal speedup curve. The deviation from the ideal speedup in these graphs is due to the Synchronization and Communication overheads.
 \newline\newline
-From these graphs, we can also make certain observations regarding the nature of the speedup curve.
+From the graphs in Figure 4.3, we can also make certain observations regarding the nature of the speedup curve.
 \begin{enumerate}[label=(\alph*)]
-\item With fewer machines, this effect of the Cholesky Factorization portion is not observed as the time taken for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of the sequential portion significant.
+\item With fewer machines, the effect of the Cholesky Factorization portion is not observed as the time taken for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of the sequential portion significant.
 \item For smaller datasets, the speedup deteriorated at a much faster rate as compared to the larger ones, when the Cholesky Factorization was included. For smaller datasets, the time for each iteration (and overall time) is much smaller than for the larger datasets and so, by using a few machines $(m < 40)$, the time taken for all portions of the program except the sequential portions reduces quickly. This means that even with a few machines, the time taken for the sequential portion of the program becomes significant and reduces the speedup achieved. For larger datasets, this same effect of the sequential portion of the program is not observed until several more machines are used as the time taken for the execution of the sequential portion is insignificant compared to the time taken for the execution for the rest of the algorithm in each iteration when only a few machines are used.
+\item The effect of Choleskly Factorization on datasets of similar size but different number of iterations required for convergence(SARCOS and AIMPEAK) is verified. Without the Cholesky Factorization, the difference in speedup is attributed to only the Communication and Synchronization overheads and this speedup curve is similar for both datasets, but if the Choleskly Factorization is included, the speedup for the SARCOS dataset is much more than for the AIMPEAK dataset since fewer iterations are required for convergence.
 \end{enumerate}
 From Amdahl's law, the speedup that can be achieved is capped by the un-parallelizable portions of the program. From our results and observations above, this means that for a larger speedup, the time taken for the un-parallelizable portion of the program needs to be insignificant compared to the rest of the program, which is the case for larger datasets. So, {\bf larger the dataset, greater is the speedup we can achieve by increasing the machines used.} For smaller datasets, since the time taken for the un-parallelizable portion of the program is not insignificant, the speedup that can be achieved will be limited.
 \subsection{Summary of Results}
@@ -776,17 +777,17 @@ From the observations in the previous subsections, we can make certain observati
 \begin{enumerate}[label=(\alph*)]
 \item {\bf PSVR successfully parallelizes SVR algorithm}
 \newline
-The following observation can be made from Table 2; For a given dataset, PSVR can effectively parallelize the SVR algorithm to provide increased speedup with increasing number of machines used. The speedup achieved with increasing number of machines is nearly linear, except for the overheads detailed in Section \ref{Overhead}. This would  mean that the PSVR algorithm can be scaled almost linearly (by using more machines) to be used with larger datasets which correspond to real-world data.
+The following observation can be made from Table 4.2; For a given dataset, PSVR can effectively parallelize the SVR algorithm to provide increased speedup with increasing number of machines used. The speedup achieved with increasing number of machines is nearly linear, except for the overheads detailed in Section \ref{Overhead}. This would  mean that the PSVR algorithm can be scaled almost linearly (by using more machines) to be used with larger datasets which correspond to real-world data.
 
 \item {\bf Predictive performance of PSVR nearly equivalent to existing state-of-the-art}
 \newline
-In Table 1, we compare the predictive performance of PSVR to that of the state-of-the-art SVR implementation(LIBSVM) and observe that for each of the datasets, the predictive performance of PSVR is nearly equivalent to that of LIBSVM even with the Kernel Matrix approximation.
+In Table 4.1, we compare the predictive performance of PSVR to that of the state-of-the-art SVR implementation(LIBSVM) and observe that for each of the datasets, the predictive performance of PSVR is nearly equivalent to that of LIBSVM even with the Kernel Matrix approximation.
 \newline
 The rank-ratio($p/n$) of the approximated Kernel Matrix, utilized to achieve a nearly equivalent predictive performance, is dependent on the size of the dataset. As the size of the dataset increases, the rank-ratio of the approximated matrix used decreases. This means for larger datasets, the size of the matrix to actually be considered will be smaller.
 
 \item {\bf PSVR outperforms existing state-of-the-art with respect to computational time}
 \newline
-In Table 2, we also tabulate the time taken for the state-of-the-art (LIBSVM) and notice that the time taken for PSVR to compute the solution, in most cases, is much less than that for LIBSVM. For larger datasets, the computational time is significantly less for each setting of machines used. 
+In Table 4.2, we also tabulate the time taken for the state-of-the-art (LIBSVM) and notice that the time taken for PSVR to compute the solution, in most cases, is much less than that for LIBSVM. For larger datasets, the computational time is significantly less for each setting of machines used. 
 \newline
 For smaller datasets, this is not always the case; LIBSVM outperforms PSVR when run on only one machine, but with parallelization PSVR converges to a solution much faster than LIBSVM. The reason for LIBSVM initially outperforming PSVR is that LIBSVM is better equipped to handle smaller datasets and can perform several optimizations (Kernel Caching) to speed up performance. These optimizations do not scale well with larger datasets. When parallel machines are used, the PSVR process speeds up nearly linearly to decrease the time taken for computation.
 \end{enumerate}
