@@ -20,19 +20,18 @@
 \begin{titlepage}
 \begin{centering}
 \large
-  CG4001 - B.Eng. Dissertation\\
 \vspace{1 cm}
-\Large \textbf{Scaling up Machine Learning techniques via parallelization for large data} \vspace{2 cm} \large \\
-By \\ \vspace{.5cm}
+\Large \textbf{Scaling up Machine Learning techniques via parallelization for large data} \vspace{5 cm} \large \\
+Submitted by \\ \vspace{.5cm}
 Akshay Viswanathan \\
 A0074611M \\
 \vspace{2 cm} 
 \vspace{5cm}
 \hspace{-0.6cm}
-Department of Computer Engineering\\
-School of Computing\\
-National University of Singapore\\
-2014-2015\\
+In partial fulfilment of the\\
+requirements for the Degree of\\
+Bachelor of Engineering (Computer Engineering)\\
+National University of Singapore \\
 \end{centering}
 \end{titlepage}
 \newpage
@@ -42,16 +41,17 @@ National University of Singapore\\
 \large
   CG4001 - B.Eng. Dissertation\\
 \vspace{1 cm}
-\Large \textbf{Scaling up Machine Learning techniques via parallelization for large data} \vspace{2 cm} \large \\
+\Large 
+\textbf{Scaling up Machine Learning techniques via parallelization for large data} 
+\vspace{2 cm}
+\large \\
+\vspace{4 cm}
 By \\ \vspace{.5cm}
 Akshay Viswanathan \\
 A0074611M \\
-\vspace{4 cm}
-Department of Computer Engineering\\
-School of Computing\\
 National University of Singapore\\
 2014-2015\\
-\vspace{2 cm} 
+\vspace{4 cm} 
 \end{centering}
 \hspace{-0.6cm}Project  ID: H148130\\
 Project Supervisor: Dr. Low, Bryan Kian Hsiang\\
@@ -100,7 +100,10 @@ I would like to express my sincere gratitude to the following people:
 Professor Low Kian Hsiang for his guidance and supervision through all stages of the project and also contributing his expertise in the subject.
 \newline
 \newline
-Mr. Jiangbo Yu for his assistance and guidance through this project.
+Professor Tze Yun Leong for her feedback and advice during the interim presentation.
+\newline
+\newline
+Mr. Jiangbo Yu for his assistance and technical support through this project.
 \newline
 \newline
 My family and friends for their emotional support through this period.
@@ -502,22 +505,23 @@ In favour of these results, the Cholesky Factorization of the matrix is implemen
  {\bf Depending on the nature of the training instances, only a subset of instances will correspond to a non-zero $(\alpha - \alpha^*)$ value and since the SVR model depends on a non-zero value of $(\alpha - \alpha^*)$ only the corresponding subset will be considered relevant for the model and used in the prediction phase the remaining instances are discarded.}
 \subsection{Computing b}
 \label{Comuting B}
-  {\bf The final step of the PSVR process, the support vectors from the different machines distributedly compute $b$ of the regression model and the mean of the results is selected as the final value.}
+  {\bf The final step of the PSVR process, the support vectors from the different machines distributedly compute the value of $b$ of the regression model and the mean of these results is selected as the final value.}
   \newline\newline
 By the end of the IPM process, the Support Vectors for the model are identifiable by a non-zero $(\alpha - \alpha^*)$ value. If we consider equation (2), we find that for the target regression estimate, we only have to compute the summation over all the support vectors, giving us the equation:
 \begin{gather*}
 f(x) = \sum_{i=1}^{N_{sv}}{(\alpha_{i} - \alpha^*_{i}) \langle sv_{i}, x \rangle} + b
 \end{gather*}
 where $N_{sv}$ is the number of Support Vectors and $sv_{i}$ corresponds to each Support Vector. From this equation, each training instance can be used to compute the value of $b$ by substituting the corresponding value of $x_{i}$ and $y_{i}$.
-\newline For practical reasons, we consider a maximum of 1000 training instances and select the average of the computed $b$ values.
+\newline For practical reasons, we consider a maximum of 1000 training instances and select the average of the computed $b$ values as the final value of $b$.
 \cleardoublepage
 \section{Experiments}
-This section of the report examines the performance of PSVR with respect to 3 metrics,
+{\bf This section of the report examines the performance of PSVR with respect to 2 metrics,}
 \begin{itemize}
-\item  Prediction Accuracy: Root Mean Square Error to determine accuracy of regression model
-\item Speedup: Relative performance increase by usage of parallel machines
-\item Overhead: The various overheads incurred as a consequence of using parallel machines 
+\item  {\bf Prediction Accuracy}: Root Mean Square Error to determine accuracy of regression model
+\item {\bf Speedup}: Relative performance increase by usage of parallel machines
 \end{itemize}
+{\bf The various overheads associated with PSVR, which impact the Scalability and Speedup of PSVR are also analysed.}
+\newline\newline
 For these experiments, we consider 4 datasets. For each dataset, experimentation and cross validation is used to determine the optimal parameters and Kernel Function to use to model that dataset. These datasets correspond to : 
 \begin{enumerate}[label=(\alph*)]
 \item AIMPEAK dataset  (Chen et al., 2012) of size $|D|$ = 41790 which corresponds to traffic speeds (km/h) along 775 road segments of an urban road network during morning peak hours on April 20, 2011. Each input (i.e., road segment) comprises of 5 dimension input space: length, number of lanes, speed limit, direction, and time. The time dimension comprises 54 five-minute time slots. The outputs correspond to the traffic speeds.The regression model for this dataset was configured to use a Lapacian Kernel function ($f(x) = e^{\gamma |a - b|}$) with $\gamma$ = 0.1, $\epsilon$ = 1 and hyper parameter $C$ = 1;
@@ -762,11 +766,11 @@ coordinates {(1,1)(2, 1.89)(5, 3.71)(10, 6.33)(20, 9.12)(40, 11.10)(50, 11.81)};
 \ \\
 \centerline{Figure 4.3. Speedup for various datasets excluding Synchronous component.}
 \newline\newline
-From the graphs in Figure 4.3, we see even if we disregard the sequential portions of the program, none of these speedup curves follow the ideal speedup curve. The deviation from the ideal speedup in these graphs is due to the Synchronization and Communication overheads.
+From the graphs in Figure 4.3, we see that even if we disregard the sequential portions of the program, none of these speedup curves follow the ideal speedup curve. The deviation from the ideal speedup in these graphs is due to the Synchronization and Communication overheads.
 \newline\newline
 From the graphs in Figure 4.3, we can also make certain observations regarding the nature of the speedup curve.
 \begin{enumerate}[label=(\alph*)]
-\item With fewer machines, the effect of the Cholesky Factorization portion is not observed as the time taken for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of the sequential portion significant.
+\item With fewer machines, the effect of the Cholesky Factorization portion on the speedup is not observable, as the time taken for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of executing the sequential portion significant.
 \item For smaller datasets, the speedup deteriorated at a much faster rate as compared to the larger ones, when the Cholesky Factorization was included. For smaller datasets, the time for each iteration (and overall time) is much smaller than for the larger datasets and so, by using a few machines $(m < 40)$, the time taken for all portions of the program except the sequential portions reduces quickly. This means that even with a few machines, the time taken for the sequential portion of the program becomes significant and reduces the speedup achieved. For larger datasets, this same effect of the sequential portion of the program is not observed until several more machines are used as the time taken for the execution of the sequential portion is insignificant compared to the time taken for the execution for the rest of the algorithm in each iteration when only a few machines are used.
 \item The effect of Choleskly Factorization on datasets of similar size but different number of iterations required for convergence(SARCOS and AIMPEAK) is verified. Without the Cholesky Factorization, the difference in speedup is attributed to only the Communication and Synchronization overheads and this speedup curve is similar for both datasets, but if the Choleskly Factorization is included, the speedup for the SARCOS dataset is much more than for the AIMPEAK dataset since fewer iterations are required for convergence.
 \end{enumerate}
