@@ -14,7 +14,7 @@ Running the project
 
 Preprocessing:
 * Please ensure that both training and testing files have the following format:
- <br/><em>y<sub>i</sub>&nbsp;&nbsp;&nbsp;1:&nbsp;x<sub>1</sub>&nbsp;&nbsp;&nbsp;2:&nbsp;x<sub>2</sub> &nbsp;&nbsp;....&nbsp;&nbsp;n: x<sub>n</sub></em>
+ <br/><em>y<sub>i</sub>&nbsp;&nbsp;&nbsp;1:&nbsp;x<sub>i,1</sub>&nbsp;&nbsp;&nbsp;2:&nbsp;x<sub>i,2</sub> &nbsp;&nbsp;....&nbsp;&nbsp;n: x<sub>i,n</sub></em>
 
 1. move to /trunk directory
 2. compile the project by running the command: make
