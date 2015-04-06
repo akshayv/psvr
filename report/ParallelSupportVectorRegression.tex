@@ -65,7 +65,7 @@ Deliverables:\\
 \addcontentsline{toc}{section}{\protect\numberline{}Abstract}%
 \end{center}
 \begin{adjustwidth}{2 cm}{2 cm} 
-Support Vector Regression suffers from several scalability issues with respect to both memory usage as well as computational time which makes it unusable with larger datasets. To alleviate these bottlenecks, Parallel Support Vector Regression (PSVR) has been proposed and developed, which aims to utilize multi-core processors and supercomputing clusters to distributedly compute the regression model as well as use matrix factorization techniques to reduce the overall computation required to be performed. If the number of training instances is $n$, the rank of the factorized matrix is $p$ and the number of available machines is $m$, PSVR attempts to reduce the memory requirement from $O(n^2)$ to $O(np/m)$ where $p << n$; and the computational complexity from $O(n^3)$ to $O(np^2/m)$. Experiments performed examine the effectiveness of PSVR from both an accuracy and scalability standpoint.\\
+Support Vector Regression suffers from known scalability issues with respect to both memory usage as well as computational time which makes it unusable with larger datasets. To alleviate these bottlenecks, Parallel Support Vector Regression (PSVR) has been proposed and implemented, which utilizes multi-core processors and supercomputing clusters to distributedly compute the regression model as well as use matrix factorization techniques to reduce the overall computation required to be performed. If the number of training instances is $n$, the rank of the factorized matrix is $p$ and the number of available machines is $m$, PSVR successfully reduces the memory requirement from $O(n^2)$ to $O(np/m)$ where $p << n$; and the computational complexity from $O(n^3)$ to $O(np^2/m)$. Experiments performed examine the effectiveness of PSVR from both an accuracy and scalability standpoint.\\
 The implementation of PSVR is available at:
 \begin{center}
  \url{https://github.com/akshayv/psvr}
@@ -115,7 +115,7 @@ My family and friends for their emotional support through this period.
 \section{Introduction}
 This research project focuses on developing a parallel implementation of the Support Vector Regression(SVR) algorithm which allows usage of SVR for analysis of large datasets by exploiting multi-core processors and supercomputing clusters. 
 \subsection{Motivation}
-Regression analysis is a Machine Learning task which aims to establish relationships among input variables, which has several applications including prediction and forecasting. With the increasing ease of data collection over the recent years, the importance of regression analysis has risen as well, to model this data. A learning model which can be effectively used for regression analysis is Support Vector Regression.
+Regression analysis is a Machine Learning task which aims to establish relationships among input variables, and has several applications including prediction and forecasting of variables. With the increasing ease of data collection over the recent years, the dependence of regression analysis to model this data has risen as well. One instance of a learning model which can be effectively used for regression analysis is Support Vector Regression.
 \newline\newline
 Support Vector Regression (SVR), a variation of Support Vector Machines, is a supervised learning algorithm which produces a regression model using a relevant subset of the input training data. Although several different approaches exist for regression analysis, SVR boasts many advantages over the conventional regression methods, which make it suitable for several regression applications. These advantages include:
 \begin{itemize}
@@ -123,25 +123,24 @@ Support Vector Regression (SVR), a variation of Support Vector Machines, is a su
 For a regression technique to be effective, it must be robust in being able to determine non-linear regression models from the input data.
 SVR achieves this but utilizing the Kernel Trick, which efficiently maps data instances to higher dimensional spaces without explicitly mapping each of the data instances. The Kernel function operates on the inner product of two data instances to map them to a suitable higher dimension space, wherein the regression model is determined.
 \item {\bf Allowance for maximum deviation.}
-The commonly used SVR variation, $\epsilon-$SVR utilizes a $\epsilon-$ insensitive loss function to determine a regression model where each data instance has at most $\epsilon$ deviation from the predicted value. This loss function allows SVR to be utilized in critical situations, for example if you are performing a currency exchange and do not want a deviation greater than $\epsilon$.
+The commonly used SVR variation, $\epsilon-$SVR utilizes a $\epsilon-$ insensitive loss function to determine a regression model where each data instance has at most $\epsilon$ deviation from the predicted value. This loss function allows SVR to modify the regression model depending on the requirements, for example if you are performing a currency exchange and do not want a deviation greater than $\epsilon$.
 \item {\bf Robust Regression Model.}
 Soft-Margin SVR, similar to Soft-Margin SVM, has an allowance for corrupt data instances. This is important for real data since incorrect data instances may be present due to a variety of factors. The hyper parameter $C$ eliminates usage of most incorrect data instances and ensures a robust regression model, avoiding overfitting.
 \item  {\bf Complexity Independent of Input Attributes size.}
 The complexity of the SVR with regard to both computational cost and memory are negligibly affected by the number of attributes for each data instance, meaning that several supporting attributes can be added to the training instances with negligible difference to the cost.
 \end{itemize}
-\ \\
 With increase in data availability and ease of data collection, the number of data instances available for every real-world situation such as Stock Market data, Traffic Speed data, and Electricity Load data have increased significantly, requiring the algorithms used for regression analysis to scale with larger datasets.
 \newline\newline
 Ideally, SVR would scale comfortably with the increase in data instances to produces a regression model, but this is not the case. SVR suffers from some well documented limitations concerning usage with large datasets, including:
 \begin{itemize}
-\item {\bf Large initial memory requirement.} As detailed in section \ref{Background}, one of the initial steps in using the SVR algorithm is to build a matrix $K(x_{i}, x_{j})$, known as the Kernel Matrix, which is the inner product of every data instance with every other data instance, the entirety of which is required to be built as an initial step of the training. The memory requirement to build and maintain this matrix is $O(n^2)$, it is quadratic in the number of training instances. As the number of training instances increases, not only does the computational cost to build this matrix increase, it will be come increasingly difficult to maintain this entire matrix in memory without running out of hardware resources.
+\item {\bf Large initial memory requirement.} As detailed in section \ref{Background}, one of the initial steps in using the SVR algorithm is to build a matrix $K(x_{i}, x_{j})$, known as the Kernel Matrix, which is the inner product of every data instance with every other data instance, the entirety of which is required to be built as an initial step of the training. The memory requirement to build and maintain this matrix is $O(n^2)$, it is quadratic in the number of training instances. As the number of training instances increases, not only does the computational cost to build this matrix increase, it becomes increasingly difficult to maintain this entire matrix in memory without running out of hardware resources.
 
-\item {\bf Large computational cost.} In all QP solvers of the SVR convex optimization problem, an inverse of the Kernel Matrix is required to be performed as several separate instances, the computational cost of which is $O(n^3)$, cubic in the number of training instances. Again, as the number of training instances increases, the computational cost of performing this inverse increases significantly creating a bottleneck in the SVR process, thereby making it further unusable with large datasets.
+\item {\bf Large computational cost.} In all Quadratic Programming solvers of the SVR convex optimization problem, an inverse of the Kernel Matrix is required to be performed at several separate instances, the computational cost of which is $O(n^3)$, cubic in the number of training instances. Again, as the number of training instances increases, the computational cost of performing this inverse increases significantly creating a bottleneck in the SVR process, thereby making it unusable with large datasets.
 \end{itemize}
 
 These limitations make it increasingly impossible to use the standard SVR algorithm for use with larger datasets; The larger datasets correspond to real-world requirements and situations and an algorithm which is unable to cater to these requirements would be highly ineffective.
 \subsection{Objective}
-In this paper a parallel SVR algorithm (PSVR) will be proposed which utilizes supercomputing clusters to allow SVR to effectively scale with larger datasets.
+In this project a parallel SVR algorithm (PSVR) is proposed which utilizes supercomputing clusters to allow SVR to effectively scale with larger datasets.
 Specifically, the following questions will be addressed:
 \newline\newline
 \setlength{\leftskip}{3cm}
@@ -179,7 +178,7 @@ The literature review section of this report consists of two subsections, one co
 \label{Background} 
 In this section, the details of Support Vector Regression will briefly be explained. Most of the content has been extracted from Elements of Statistical Learning and A Tutorial on Support Vector Regression.
 \newline\newline
- Given training data: $\{(x_{1}, y_{1})\dots(x_{l}, y_{l})\}\subset \chi \times R$, where $\chi$ denotes the space of input patterns, in $\epsilon$-SVR our goal is to estimate a function $f(x)$ that has at most $\epsilon$ deviation from each of the targets $y_{i}$ obtained from the training instances while at the same time is as flat as possible. The reuqired function is described as:  
+ Given training data: $\{(x_{1}, y_{1})\dots(x_{l}, y_{l})\}\subset \chi \times R$, where $\chi$ denotes the space of input patterns, in $\epsilon$-SVR our goal is to estimate a function $f(x)$ that has at most $\epsilon$ deviation from each of the targets $y_{i}$ obtained from the training instances while at the same time is as flat as possible. The required function is described as:  
  \begin{gather*} 
 f(x) = \langle w, x\rangle + b \ with\  w\  \epsilon\ \chi, \ b\ \epsilon\ R
  \end{gather*}
@@ -231,12 +230,12 @@ w = \sum_{i=1}^{l}{(\alpha_{i} - \alpha^*_{i})x_{i}}, which\ implies\\
  Similar to SVMs, after optimization, only a subset of the $(\alpha_{i} - \alpha^*_{i})$ values are non-zero and these constitute the Support Vectors for the Regression model.The parameter $b$ in the regression model can be computed as a by-product of the convex optimization process as described later.
  \newline
  \newline
- The $K(x_{i}, x_{j})$ component of the above formulation is an inner product matrix between each of the training instances in the datasets\footnotemark. Similar to SVMs the Kernel Trick can be used during the construction of the above matrix to map the training instances in the matrix to a higher dimensional space if required. This component of the formulation will further be represented by $Q$ in the rest of the report.
+ The $K(x_{i}, x_{j})$ component of the above formulation is an inner product matrix between each of the training instances in the datasets\footnotemark. Similar to SVMs the Kernel Trick can be used during the construction of the above matrix to map the training instances in the matrix to a higher dimensional space if required. This component of the formulation will further be represented as $Q$ in the rest of the report.
  \footnotetext{ The construction and maintenance of this matrix in memory is one of the key bottlenecks of the SVR process since the size of the matrix is quadratic in the number of training instances.}
 \subsection{Related Work}
 Support Vector Machines, proposed by Vapnik et al. in 1963 is a Supervised Machine Learning algorithm used for classification by constructing a hyperplane to achieve maximum separation from the training instances. The regression version of SVM, SVR, was proposed by Smola et al. in 1996 and utilized a different loss function from the traditional SVM while retaining several of the useful properties of SVMs.
 \newline\newline
-Currently, two variations of SVR exist, $\epsilon$-SVR, $\nu$-SVR (Sch\"olkopf et al.),both of which require solving the same convex optimization problem. 
+Currently, two variations of SVR exist, $\epsilon$-SVR, $\nu$-SVR (Sch\"olkopf et al.), both of which require solving the same convex optimization problem. 
 Since its inception, the SVR algorithm has remained fairly standard with several works exploring the validity and usefulness of SVR through experiments.
 \newline\newline
 With the increase in data availability over the recent years, the idea of scaling up traditionally unscalable and computationally expensive machine learning techniques has received considerable amount of interest. 
@@ -251,7 +250,7 @@ Under the sub category of using MPI, there have been works to parallelize other 
 Specific to SVR, three techniques that utilize computing clusters have been analyzed in Section \ref{Comparison with other approaches}.
 \item {\bf Optimizing the underlying algorithm using heuristic methods.}
 \newline
-Various attempts have also been made improve the performance of the QP solver to speed up the process of solving the SVR convex optimization problem. These attempts include using heuristic techniques such as chunking (Osuna et al.), kernel caching (Joachims et al.), sequential minimal optimization (SMO) (Platt et al.) etc and although they significantly improve the performance for the regression analysis for a given dataset, they do not scale with larger datasets. In some cases, these techniques have been used in conjunction with distributed computing to achieve improved performance and scalability (Section \ref{PiSvM and MRPsvm}).
+Various attempts have also been made improve the performance of the Quadratic Programming solver to speed up the process of solving the SVR convex optimization problem. These attempts include using heuristic techniques such as chunking (Osuna et al.), kernel caching (Joachims et al.), sequential minimal optimization (SMO) (Platt et al.) etc and although they significantly improve the performance for the regression analysis for a given dataset, they do not scale with larger datasets. In some cases, these techniques have been used in conjunction with distributed computing to achieve improved performance and scalability (Section \ref{PiSvM and MRPsvm}).
 \end{enumerate}
 PSVR attempts to produce a scalable SVR algorithm for use with large data, which relies on using distributed computing techniques in conjuction with the Kernel Matrix approximation.
 \subsection{Comparison with other approaches}
@@ -262,7 +261,7 @@ This section explores the difference between the proposed PSVR and other attempt
 PiSvM and MRPsvm follow a similar approach to solving the Convex Optimization problem; Both use matrix decomposition techniques to decompose the original kernel matrix into several smaller matrices and optimize (using a SMO solver) each portion in parallel, before merging the results. There exist minor differences between the two implementations:
 \begin{itemize}
 \item PiSvM utilizes MPI and hence relies on a distributed memory system while MRPsvm uses a Map-Reduce framework with a shared-memory system.
-\item Due to the distributed nature of the implementation as a consequence of using MPI, PiSvM required each process to locally cache a piece of the Kernel Matrix and the task of updating gradients is assigned to the corresponding processors. MRPsvm maintains a single shared copy of the matrix and each processor accesses the cache equally.
+\item Due to the distributed nature of the implementation as a consequence of using MPI, PiSvM requires each process to locally cache a piece of the Kernel Matrix and the task of updating gradients is assigned to the corresponding processors. according to cache locality MRPsvm maintains a single shared copy of the matrix and each processor accesses the cache equally.
 \end{itemize}
 
 The PSVR algorithm resembles PiSvM in the fact that the kernel matrix is distributed among each of the processes. The main differences between PSVR and the above two algorithms is that PSVR does not perform local optimizations on the distributed chunks and that PSVR performs a matrix approximation as a prior step to reduce the computational load. PSVR uses Primal-Dual Interior Point Method to solve the Convex Optimization problem.
@@ -305,10 +304,10 @@ Application of ICF therefore allows the original Kernel matrix  of order $n \tim
 \end{itemize}
 To overcome these limitations, PSVR performs ICF in a row-based manner(Row-Based ICF), which both maximizes the portions of the algorithm that can be parallelized while allowing a scalable memory requirement of $O(np/m)$ (the rows of the matrix $H$ are distributed across $m$ machines rather than the columns).
 \newline\newline
-At the end of ICF, a low-rank approximation of the Kernel Matrix is distributed across $m$ machines while benefiting from:
+{\bf At the end of ICF, a low-rank approximation of the Kernel Matrix is distributed across $m$ machines while benefiting from:}
 \begin{itemize}
-\item A scalable memory requirement of $O(np/m)$.
-\item A scalable computational cost $O(np^2/m)$.
+\item {\bf A scalable memory requirement of $\bm{O(np/m)}$.}
+\item {\bf A scalable computational cost $\bm{O(np^2/m)}$.}
 \item A low communication overhead of $O(p^2 log(m))$.
 \end{itemize} 
 {\bf The details of Row-Based PICF algorithm have been described in Appendix A.}
@@ -316,19 +315,19 @@ At the end of ICF, a low-rank approximation of the Kernel Matrix is distributed 
  \label{Interior Point Method}
   {\bf The Interior Point Method is utilized in a parallel manner to solve the convex optimization problem. Most of the computation is performed on the respective machine for each data instance and global values are communicated when required}.
   \newline\newline
- The bottlenecks of SVRs exist primarily in solving the Convex Optimization problem. Although there exist many approaches to solving the Convex Optimization problem, we utilize Interior Point Methods(IPM) to solve it as it is highly effective in efficiently traversing the interior of the feasible region and also enables solutions of linear programming problems.
+ The computational bottlenecks of SVRs exist primarily in solving the Convex Optimization problem. Although there exist many approaches to solving the Convex Optimization problem, Primal Dual Interior Point Methods(PD-IPM) is utilized to solve it as it is highly effective in efficiently traversing the interior of the feasible region and also enables solutions of linear programming problems (something that several other solvers do not support).
 \newline
 Currently, the most effective IPM algorithm is the Primal Dual Interior Point Method which utilizes barrier functions to eliminate the inequalities following which uses the iterative Newton's method to reach the optimal solution.
 \newline
  This is adapted for PSVR in the following equations.
  \newline\newline
-From Section 3.1, the dual to be maximized is of the form: 
+From Section \ref{Background}, the dual to be maximized is of the form: 
 \begin{gather*} 
  max\  \frac{-1}{2}\sum_{i, j=0}^{n}{(\alpha_{i} - \alpha_{i}^*)(\alpha_{j} - \alpha_{j}^*)K(x_{i}, x_{j})} - \epsilon\sum_{i=0}^{n}{(\alpha_{i} + \alpha_{i}^*)}+\sum_{i=0}^{n}{y_{i}(\alpha_{i} - \alpha_{i}^*)}   \\
  Subject \ to: \sum_{i=0}^{n}{(\alpha_{i} - \alpha_{i}^*)} = 0, \ 0\leq\alpha, \alpha^*\leq C
  \end{gather*}
  \newline
-To optimize this dual equation, we consider its Lagrangian dual:
+To optimize this dual equation, consider its Lagrangian dual:
  \begin{gather*} 
 min\  \frac{1}{2}\sum_{i, j=0}^{n}{(\alpha_{i} - \alpha_{i}^*)(\alpha_{j} - \alpha_{j}^*)Q} + \epsilon\sum_{i=0}^{n}{(\alpha_{i} + \alpha_{i}^*)}-\sum_{i=0}^{n}{y_{i}(\alpha_{i} - \alpha_{i}^*)}-\sum_{i=0}^{n}{\lambda_{i}(C-\alpha_{i})}\\-\sum_{i=0}^{n}{\xi_{i}(C-\alpha^*_{i})}-\sum_{i=0}^{n}{\theta_{i}\alpha_{i}}-\sum_{i=0}^{n}{\phi_{i}\alpha^*_{i}}+\nu\sum_{i=0}^{n}{(\alpha_{i} - \alpha_{i}^*)}\\
 Subject \ to:\ \lambda_{i},\ \xi_{i},\ \theta_{i},\ \phi_{i} \geq 0
@@ -445,17 +444,17 @@ and\ \Sigma={Q(I+(\delta^*)^{-1}\delta) + \delta}
  \belowdisplayskip=5pt
  After each iteration, t is updated as $t=\dfrac{4n}{\lambda(C-\alpha) + \xi(C-\alpha^*) + \theta\alpha + \phi\alpha^*}$
 \newline\newline
- We perform the iterations until we satisfy certain conditions as described by the IPM namely:
+Iterations are performed until certain conditions described by the IPM are satisfied, namely:
   \begin{gather*}
 1^T(\alpha_{i} - \alpha_{i}^*) \leq s \approx 0, \\
 1^T(Q(\alpha - \alpha^*) + 1_{n}.\epsilon - y + \lambda - \theta + 1_{n}.\nu) \leq s \approx 0\ and \\
 1^T( -Q(\alpha - \alpha^*) + 1_{n}.\epsilon + y + \xi - \phi - 1_{n}.\nu) \leq s \approx 0
  \end{gather*}
- The computational bottleneck of complexity $O(n^3)$ in this process is on determining the inverse of the Kernel Matrix Q, which occurs during each iteration in solving for both $\Delta \nu$ and $\Delta z$. \\
-The matrix Q that is to be inverted, has already been approximated by the low-rank matrix $H$ as $HH^T$ and is distributedly stored, so  {\bf  the bottleneck of the Newton Step can be sped up from $O(n^3)$ to $O(p^2n)$, and can be parallelized to $O(p^2n/m)$} using the Sherman-Morrison-Woodbury formula (Section \ref{Morrison-Woodbury formula}).
+ The computational bottleneck of complexity $O(n^3)$ in this process is on determining the inverse of the Kernel Matrix Q, which occurs during each iteration in solving for both $\Delta \nu$ and $\Delta \alpha$. \\
+The matrix Q that is to be inverted, has already been approximated by the low-rank matrix $H$ as $HH^T$ and is distributedly stored, so  {\bf  the bottleneck of the Newton iterations can be sped up from $\bm{O(n^3)}$ to $\bm{O(p^2n)}$, and can be parallelized to $\bm{O(p^2n/m)}$} using the Sherman-Morrison-Woodbury formula (Section \ref{Morrison-Woodbury formula}).
 \subsubsection{Morrison-Woodbury formula}  
 \label{Morrison-Woodbury formula}
-  {\bf Incomplete Cholesky Factorization in conjunction with Morrison-Woodbury formula, both applied in a parallel manner, reduce the computational complexity to $O(np^2/m)$, ensuring scalability with large data.}
+  {\bf Incomplete Cholesky Factorization in conjunction with Morrison-Woodbury formula, both applied in a parallel manner, reduce the computational complexity to $\bm{O(np^2/m)}$, ensuring scalability with large data.}
   \newline\newline
 From equation (6), we have
 \begin{gather*} \Sigma={Q(I+(\delta^*)^{-1}\delta) + \delta}\\
@@ -463,19 +462,19 @@ where \\
 \delta=diag(\frac{\lambda}{C-\alpha} + \frac{\theta}{\alpha});\   \delta^*=diag(\frac{\xi}{C-\alpha^*} + \frac{\phi}{\alpha^*})\\
 where\ \delta \ and\ \delta^* \ are\ diagonal\ matrices
 \end{gather*} 
-As part of the IPM process, we observe that we need to calculate $\Sigma^{-1}$ in the computation of both $\Delta \alpha$ and $\Delta \nu$ (Equations (4) and (5)). Computation of $\Sigma^{-1}$ involves computing the inverse of the matrix Q, which is the bottleneck of the SVR process. In the standard SVR implementation, this operation incurs a $O(n^3)$ cost. 
+As part of the IPM process, it can be observed observe that $\Sigma^{-1}$ needs to be calculated in the computation of both $\Delta \alpha$ and $\Delta \nu$ (Equations (4) and (5)). Computation of $\Sigma^{-1}$ involves computing the inverse of the matrix Q, which is the bottleneck of the SVR process. In the standard SVR implementation, this operation incurs a $O(n^3)$ cost. 
 \newline\newline
-{\bf Through the application on Incomplete Cholesky Factorization and Morrison-Woodbury formula, the time complexity can be reduced to $O(np^2)$ and can be parallelized to $O(np^2/m)$.}
+{\bf Through the application on Incomplete Cholesky Factorization and Morrison-Woodbury formula, the time complexity can be reduced to $\bm{O(np^2)}$ and can be parallelized to $\bm{O(np^2/m)}$.}
 \newline
 \newline 
 Parallelizing the computation of $\Sigma^{-1}(z - \Delta\nu)$ (or $\Sigma^{-1}.1_{n}$) is simpler than parallelizing the computation $\Sigma^{-1}$ by applying the Morrison-Woodbury formula. 
 The following section describes how parallelization of the computation of $\Sigma^{-1}(z - \Delta\nu)$ through the usage of Morrison-Woodbury formula works.
 \newline\newline
-For convenience, we will refer to $(z - \Delta\nu)$ as the vector $u$, and $(I+(\delta^*)^{-1}\delta)$ as the diagonal matrix $E$
+For convenience, $(z - \Delta\nu)$ will be referred to as the vector $u$, and $(I+(\delta^*)^{-1}\delta)$ will be referred to as the diagonal matrix $E$.
 \newline\newline
-Since the SMW (the Sherman-Morrison-Woodbury formula) is not directly applicable to our case, we need to modify it to account for the matrix E, which is fortunately a diagonal matrix. So, we can write $\Sigma^{-1}u$ as
+The SMW (the Sherman-Morrison-Woodbury formula) is not directly applicable to our case, it needs to be modified to account for the additional matrix factor, E, which is fortunately a diagonal matrix. So, $\Sigma^{-1}u$ can be equated to:
  \begin{gather} 
-\Sigma^{-1}u = (\delta+QE)^{-1}u≈(\delta+HEH^T)^{-1}u\\
+\Sigma^{-1}u = (\delta+QE)^{-1}u \approx (\delta+HEH^T)^{-1}u\\
 = \delta^{-1}u - \delta^{-1}H(I + H^T \delta^{-1}EH)^{-1}EH^T \delta^{-1}u\\
 = \delta^{-1}u - \delta^{-1}H(GG^{T})^{-1}EH^T \delta^{-1}u
 \end{gather}
@@ -483,13 +482,13 @@ $\Sigma^{-1}u$ can be computed in four steps:
 \begin{enumerate}
 \item Compute $\delta^{-1}u$. $\delta$ can be derived from locally stored vectors, as part of IPM. $\delta^{-1}u$ is a $n \times 1$ vector, and can be computed locally on each of the m machines.
 \item Compute $t_{1} = EH^{T} \delta^{-1}u$. Every machine stores some rows of H and their corresponding part of $\delta^{-1}u$ as well as E. This step can be computed locally on each machine. The results are sent to the master (which can be a randomly picked machine for all PIPM iterations) to aggregate into $t_{1}$ for the next step.
-\item Compute $(GG^T )^{-1}t_{1}$. This step is completed on the master, since it has all the required data. G can be obtained from H in a straightforward manner as shown in SMW. Computing $t_{2} = (GG^T )^{-1}t_{1}$ is equivalent to solving the linear equation system $t_{1} = (GG^T )t_{2}$. PIPM first solves $t_{1} = Gy_{0}$, then $y_{0} = G^T t_{2}$. Once it has obtained $y_{0}$, PIPM can solve $G^T t_{2} = y_{0}$ to obtain $t_{2}$. The master then broadcasts $t_{2}$ to all machines.
+\item Compute $(GG^T )^{-1}t_{1}$. This step is completed on the master, since it has all the required data. G can be obtained from H by performing a Cholesky Factorization (Section \ref{Cholesky Factorization}). Computing $t_{2} = (GG^T )^{-1}t_{1}$ is equivalent to solving the linear equation system $t_{1} = (GG^T )t_{2}$. PIPM first solves $t_{1} = Gy_{0}$, then $y_{0} = G^T t_{2}$. Once it has obtained $y_{0}$, PIPM can solve $G^T t_{2} = y_{0}$ to obtain $t_{2}$. The master then broadcasts $t_{2}$ to all machines.
 \item Compute $\delta^{-1}Ht_{2}$ All machines have a copy of $t_{2}$, and can compute $\delta^{-1}Ht_{2}$ locally to solve for $\Sigma^{-1}u$.
 \end{enumerate}
-Similarly, $\Sigma^{-1}.1_{n}$ can be computed with a minor modification to the above formulation. Once we have obtained both, we can solve for both $\Delta\nu$ and $\Delta\alpha$.
+Similarly, $\Sigma^{-1}.1_{n}$ can be computed with a minor modification to the above formulation. Once both $\Sigma^{-1}.1_{n}$ and $\Sigma^{-1}.(z - \Delta\nu)$ have been obtained, values of $\Delta\nu$ and $\Delta\alpha$ can be determined by substituting the values.
 \subsubsection{Cholesky Factorization}
 \label{Cholesky Factorization} 
-  {\bf Cholesky Factorization is needed to reduce a positive symmetric matrix, $H$ to a form $GG^T$. This process is sequential and not parallelizable since parallelization requires each of the matrix entries to broadcast independently incurring extremely high communication cost between machines.}
+  {\bf Cholesky Factorization is needed to reduce a positive symmetric matrix, $H$ to a form $GG^T$. This process is sequential and not parallelizable since parallelization requires each of the entries of the matrix $H$ to be broadcast independently incurring extremely high communication cost between machines.}
  \newline\newline
 As per the SMW formula above (Equations (8) and (9)), the matrix $(I + H^T \delta^{-1}EH)$ needs to be reduced to a form $GG^T$ for it to be functional. This is achieved through performing a Cholesky Factorization.\\
 Cholesky Factorization decomposes a symmetric positive semi-definite matrix into into the product of a lower triangular matrix and its conjugate transpose, ie $A = LL^T$
@@ -499,20 +498,21 @@ The decomposition boils down to solving the following equations for each element
 L_{j, j} = \sqrt{A_{j, j} -  \sum_{k=1}^{j-1}{L_{j, k}^2}}\\
 L_{i, j} = \frac{1}{L_{j, j}}(A_{i, j} -  \sum_{k=1}^{j-1}{L_{i,j}L_{j, k}^T})
 \end{gather*}
-We can see from these equations that every element in the matrix depends on the elements in the rows and columns upto the current row and column.  If this computation is to be done in parallel, after the computation of every element, the element must be broadcast to all the other nodes so that they can maintain a copy of the entire matrix for subsequent computations. Experiments conducted on the computational time for the parallel model of the Cholesky factorization and the sequential model of the factorization showed that the time taken for the sequential model  $ << $ time taken for parallel model.\\
+From these equations, it can be observed that every element in the matrix depends on the elements in the rows and columns upto the current row and column.  If this computation is to be done in parallel, after the computation of every element, the element must be broadcast to all the other processors so that they can maintain a copy of the entire matrix for subsequent computations. Experiments conducted on the computational time for both a parallel model and a sequential model of the Cholesky factorization showed that the time taken for the sequential model  $ << $ time taken for parallel model.\\
 In favour of these results, the Cholesky Factorization of the matrix is implemented sequentially  and is the only purely sequential portion of the implementation. The time complexity for this portion is $O(p^2)$.
  \newline\newline
- {\bf Depending on the nature of the training instances, only a subset of instances will correspond to a non-zero $(\alpha - \alpha^*)$ value and since the SVR model depends on a non-zero value of $(\alpha - \alpha^*)$ only the corresponding subset will be considered relevant for the model and used in the prediction phase the remaining instances are discarded.}
+ {\bf Depending on the nature of the training instances, only a subset of instances will correspond to a non-zero $(\alpha - \alpha^*)$ value and since the SVR model depends on a non-zero value of $(\alpha - \alpha^*)$, only the corresponding subset will be considered relevant for the model and used in the prediction phase the remaining instances are discarded. These instances are the support vectors of the model.}
 \subsection{Computing b}
 \label{Comuting B}
   {\bf The final step of the PSVR process, the support vectors from the different machines distributedly compute the value of $b$ of the regression model and the mean of these results is selected as the final value.}
   \newline\newline
-By the end of the IPM process, the Support Vectors for the model are identifiable by a non-zero $(\alpha - \alpha^*)$ value. If we consider equation (2), we find that for the target regression estimate, we only have to compute the summation over all the support vectors, giving us the equation:
+By the end of the IPM process, the Support Vectors for the model are identifiable by a non-zero $(\alpha - \alpha^*)$ value. Since most of the training instances have $(\alpha - \alpha^*) = 0$, from equation (2), computation of the target regression model only requires summation over all Support Vectors which can be equated to:
 \begin{gather*}
 f(x) = \sum_{i=1}^{N_{sv}}{(\alpha_{i} - \alpha^*_{i}) \langle sv_{i}, x \rangle} + b
 \end{gather*}
-where $N_{sv}$ is the number of Support Vectors and $sv_{i}$ corresponds to each Support Vector. From this equation, each training instance can be used to compute the value of $b$ by substituting the corresponding value of $x_{i}$ and $y_{i}$.
-\newline For practical reasons, we consider a maximum of 1000 training instances and select the average of the computed $b$ values as the final value of $b$.
+where $N_{sv}$ is the number of Support Vectors and $sv_{i}$ corresponds to each Support Vector. Every training instance provided can be utilized to compute the value of $b$ by substituting the corresponding value of $x_{i}$ and $y_{i}$.
+\newline
+\newline For practical reasons, a maximum of 1000 training instances are considered to determine the value of $b$ and the average of the computed values for all these instances is selected as the final value of $b$.
 \cleardoublepage
 \section{Experiments}
 {\bf This section of the report examines the performance of PSVR with respect to 2 metrics,}
@@ -522,19 +522,19 @@ where $N_{sv}$ is the number of Support Vectors and $sv_{i}$ corresponds to each
 \end{itemize}
 {\bf The various overheads associated with PSVR, which impact the Scalability and Speedup of PSVR are also analysed.}
 \newline\newline
-For these experiments, we consider 4 datasets. For each dataset, experimentation and cross validation is used to determine the optimal parameters and Kernel Function to use to model that dataset. These datasets correspond to : 
+For these experiments, 4 datasets are considered. For each dataset, experimentation and cross validation is used to determine the optimal parameters and Kernel Function to use to model that dataset. These datasets correspond to : 
 \begin{enumerate}[label=(\alph*)]
-\item AIMPEAK dataset  (Chen et al., 2012) of size $|D|$ = 41790 which corresponds to traffic speeds (km/h) along 775 road segments of an urban road network during morning peak hours on April 20, 2011. Each input (i.e., road segment) comprises of 5 dimension input space: length, number of lanes, speed limit, direction, and time. The time dimension comprises 54 five-minute time slots. The outputs correspond to the traffic speeds.The regression model for this dataset was configured to use a Lapacian Kernel function ($f(x) = e^{\gamma |a - b|}$) with $\gamma$ = 0.1, $\epsilon$ = 1 and hyper parameter $C$ = 1;
+\item AIMPEAK dataset  (Chen et al., 2012) of size $|D|$ = 41790 which corresponds to traffic speeds (km/h) along 775 road segments of an urban road network during morning peak hours on April 20, 2011. Each input (i.e., road segment) comprises of 5 dimension input space: length, number of lanes, speed limit, direction, and time. The time dimension comprises 54 five-minute time slots. The outputs correspond to the traffic speeds. The regression model for this dataset was configured to use a Lapacian Kernel function ($f(x) = e^{\gamma |a - b|}$) with $\gamma$ = 0.1, $\epsilon$ = 1 and hyper parameter $C$ = 1;
 \item SARCOS dataset (Vijayakumar et al., 2005) of size $|D|$ = 48933 which relates to an inverse dynamics problem for a seven degrees-of-freedom SARCOS anthropomorphic robot arm. The task is to map from a 21-dimensional input space (7 joint positions, 7 joint velocities, 7 joint accelerations) to the corresponding 7 joint torques. The output corresponds to one of the seven joint torques.The regression model for this dataset was configured to use a Polynomial Kernel function ($f(x) = (c_{0} + p(a^Tb))^d $) with degree(d) = 3, coefficient sum($c_{0}$) = 1003, coefficient product(p) = 2, $\epsilon$ = 0.01 and hyper parameter $C$ = 13;
 \item HADSST dataset of size $|D|$ = 168147 corresponds to the Met Office Hadley Centre's sea surface temperature data set. More information is available at:\\ http://www.metoffice.gov.uk/hadobs/. The regression model for this dataset was configured to use a Radial Basis Kernel function ($f(x) = e^{\gamma ||a - b||^2}$)with $\gamma$ = 0.1, $\epsilon$ = 0.01 and hyper parameter $C$ = 1;
-\item Housing dataset of size $|D|$ = 606507 which tracks the residential property sales in England and Wales that are lodged with Land Registry for registration with each data instance containing two input features. More information is available at:\\ http://data.gov.uk/dataset/land-registry-monthly-price-paid-data/. The regression model for this dataset was configured to use a Radial Basis Kernel function ($f(x) = e^{\gamma ||a - b||^2}$)with $\gamma$ = 10, $\epsilon$ = 0.01 and hyper parameter $C$ = 25;
+\item Housing dataset of size $|D|$ = 606507 which tracks the residential property sales in England and Wales that are lodged with Land Registry for registration with each data instance containing two input features. More information is available at:\\ http://data.gov.uk/dataset/land-registry-monthly-price-paid-data/. The regression model for this dataset was configured to use a Radial Basis Kernel function ($f(x) = e^{\gamma ||a - b||^2}$) with $\gamma$ = 10, $\epsilon$ = 0.01 and hyper parameter $C$ = 25;
 \end{enumerate}
 For each dataset, $10\%$ of the training instances were randomly selected as test data for prediction and the remaining data was used to generate the regression model.
 \newline\newline
-The experiments were conducted on the NUS Tembusu Computing cluster using 1-50 processing cores, each of which had a nearly identical configuration of Intel(R) Xeon(R) CPU E5620 @ 2.40GHz and 20 GB memory, running Linux CentOS 6.5. The experiments were conducted by varying the number of processing cores $(m)$ = 1, 2, 5, 10, 20, 40 and 50.
+The experiments were conducted on the NUS Tembusu Computing cluster using 1-50 processing cores, each of which had a nearly identical configuration of Intel(R) Xeon(R) CPU E5620 @ 2.40GHz, across 10 physical machines each of which had 20 GB memory, running Linux CentOS 6.5. The experiments were conducted by varying the number of processing cores $(m)$ = 1, 2, 5, 10, 20, 40 and 50.
 \subsection{Prediction Accuracy}
 \label{Prediction Accuracy}
-One of the distinguishing factors of PSVR which allows it to be scalable and time-efficient is the usage of ICF, to approximate the Kernel matrix with dimensions $n \times n$ to one with dimensions $n \times p$ with $p << n$. One concern with the usage of this matrix approximation technique is the accuracy of the Regression model. To address this issue, in this section, {\bf the prediction accuracy of PSVR will be compared to that of a state-of-the-art SVR implementation (which uses the full-rank matrix). }
+One of the distinguishing factors of PSVR, which allows it to be scalable and time-efficient is the usage of ICF (Section \ref{Parallel Incomplete Cholesky factorization}) to approximate the Kernel matrix with dimensions $n \times n$ using a matrix with dimensions $n \times p$ with $p << n$. One concern with the usage of this matrix approximation technique is the accuracy of the Regression model. To address this issue, in this section, {\bf the prediction accuracy of PSVR will be compared to that of a state-of-the-art SVR implementation (which uses the full-rank matrix). }
 \newline\newline
 LIBSVM has has been selected for this comparison as it is arguably the most efficient open-source SVR implementation in terms of both speed and accuracy (Lin et al.). Specifically, LIBSVM-3.2 has been used and the parameters for training remain uniform for both implementations.
 \newline
@@ -553,12 +553,12 @@ The accuracy measure selected in this case is the Root Mean Square Error (RMSE) 
 \end{tabular}
 \ \\
 \ \\
-Table 1. Predictive accuracy of PSVR. ($p$ is set to the optimal value  after experimentation)
+Table 4.1. Predictive accuracy of PSVR. ($p$ is set to the optimal value  after experimentation)
 \end{center}
-We can see from the table above that {\bf for the larger datasets, the accuracy for PSVR when $ p << n$ is nearly equal to that of LIBSVM.} For the smaller datasets, the required value of $p$ to achieve similar accuracy is relatively larger.
+From Table 4.1, it can be seen that {\bf for the larger datasets, the accuracy for PSVR when $\bm{p << n}$ is nearly equal to that of LIBSVM.} For the smaller datasets, the required value of $p$ to achieve similar accuracy is relatively larger.
 \subsection{Scalability/Speedup}
 \label{Scalability/Speedup}
-To determine the scalability of PSVR, we consider the same 4 datasets and observe the time taken to determine the regression model (over 3 separate readings, considering the average)for each dataset while using a varying number of processing cores. Using these timings, {\bf we will determine the speedup relative to the number of processing cores used and based on this judge the scalability of PSVR}. For comparison, the time taken to train the regression model using the state-of-the-art SVR implementation (LIBSVM) for each dataset with the same parameters as PSVR and same processor configuration has also been included. 
+To determine the scalability of PSVR, the same 4 datasets have been considered and the time taken to determine the regression model (over 3 separate readings, considering the average) for each dataset while using a varying number of processing cores have been tabulated. Using these timings, {\bf the speedup relative to the number of processing cores used will be determined will be used to judge the scalability of PSVR}. For comparison, the time taken to train the regression model using the state-of-the-art SVR implementation (LIBSVM) for each dataset with the same parameters as PSVR and same processor configuration have also been included. 
 \begin{center}
 \begin{tabular}{ |c|c|c|c|c|c|c|c|c| }
   \hline
@@ -579,9 +579,9 @@ To determine the scalability of PSVR, we consider the same 4 datasets and observ
 \end{tabular}
 \ \\
 \ \\
-Table 2. Speedup of process using PSVR. ($p$ is set to the corresponding value in Table 1 and the predictive accuracy remains constant for each dataset)
+Table 4.2. Speedup of process using PSVR. ($p$ is set to the corresponding value in Table 4.1 and the predictive accuracy remains constant for each dataset)
 \end{center}
-The speedup observed tabulated in Table 2 have been plotted in the following graphs.
+The observed speedup from Table 4.2 have been plotted in the following graphs.
 \newline\newline
 \begin{tikzpicture}
 \begin{axis}[title={(a) SARCOS},xlabel={Machines used},ylabel={Speedup},xmin=0, xmax=60,ymin=0, ymax=60,xtick={0,10,20,30,40,50, 60},ytick={0,10,20,30,40,50, 60},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
@@ -632,7 +632,7 @@ The speedup observed tabulated in Table 2 have been plotted in the following gra
 \newline
 \centerline{Figure 4.1. Speedup for various datasets}
 \newline\newline
-We can make 3 observations from the tabulation and graphs,
+The following observations can be made from the tabulation and graphs,
 \begin{enumerate}[label=(\alph*)]
 \item Larger the size of the dataset, larger is the speedup as the number of machines used increases.
 \item For all datasets, the speedup begins to decreases after a threshold number of machines are used.
@@ -644,14 +644,14 @@ The reasoning behind point (c) is intuitive: depending on the nature of the data
 {\bf From Figure 4.1 and Table 4.2, it can be observed that although the speedup is not ideal, PSVR is able to parallelize the SVR algorithm and scales with increased number of machines used, more effectively so for larger datasets.}
 \subsection{Overhead}
 \label{Overhead}
-From the graphs in Figure 4.1, we can see that for each of the datasets, the speedups are not ideal, and that the individual speedups vary between datasets.
-{\bf The following section attempts to explain the overheads incurred by PSVR which affect the overall speedup of the process.}
+From the graphs in Figure 4.1, it can be observed that for each of the datasets, the speedups are not ideal, and that the individual speedups vary between datasets.
+{\bf The following section attempts to explain the overheads incurred by PSVR which affect the overall speedup of the training process.}
 \newline\newline
 Usage of parallel computing in PSVR incurs two types of overheads, Communication overhead and Synchronization overhead.
 \begin{itemize}
 \item Communication overhead corresponds to the overhead incurred due to broadcast and transmission of messages over the network as part of MPI. 
 \newline
-As the number of machines used increases, the communication over the network at each step increases as well, implying more Communication overhead with increase number of machines.The increase in overhead could be minimal\footnotemark or substantial depending on the underlying architecture of the supercomputing cluster.
+As the number of machines used increases, the communication over the network at each step increases as well, implying more Communication overhead with increase number of machines. The increase in overhead could be minimal\footnotemark or substantial depending on the underlying architecture of the supercomputing cluster.
  \footnotetext{In Figure 4.2, we notice that the Communication overhead rises significantly until m = 5 and then the increase is minor; The collective operations using MPI3 are substantially faster for processors on the same physical machine (since network traffic is minimized) and after m $\geq$ 5, while the number of processors per physical machines used increases, the number of physical machines used remains the same, causing the overhead to increase minimally for subsequent values of m(since inter-processor communication does not rely on the network).}
 \item Synchronization overhead occurs due to non-identical configuration of the machines used. Various machines are capable of executing the program at various speeds and after each step in PSVR, a synchronization occurs (using MPIBarrier) which ensures that every machine has reached the same point of execution (to prevent the situation that one of the machines fails but the other machines aren't notified).
 \end{itemize}
@@ -710,13 +710,13 @@ coordinates {(1,0)(2, 2.57)(5, 12.5)(10, 22)(20, 23)(40, 25)(50, 23)};
 \newline
 \centerline{Figure 4.2. Overheads incurred for datasets}
 \newline\newline
-We can make certain observations from these graphs.
+Certain observations can be made from these graphs.
 \begin{enumerate}[label=(\alph*)]
-\item For the larger dataset, although both the overheads are comparable to that of the smaller datasets, the speedup is affected less due to the fact that the computational time for the program is much more than the time for the overheads.
-\item We also observe that for the SARCOS and AIMPEAK datasets (which have approximately the same number of training instances,), there is significant difference in the overhead, and therefore the speedups. This is due to the nature if the datasets; The SARCOS dataset converges to a solution in much fewer iterations than the AIMPEAK dataset, causing the AIMPEAK dataset to incur much more overhead due to increased number of iterations.
+\item For the larger datasets, although both the overheads are comparable to that of the smaller datasets, the speedup is affected less due to the fact that the computational time for the program is much more than the time for the overheads.
+\item For the SARCOS and AIMPEAK datasets (which have approximately the same number of training instances,), there is significant difference in the overhead, and therefore the speedups. This is due to the nature if the datasets; The SARCOS dataset converges to a solution in much fewer iterations than the AIMPEAK dataset, causing the AIMPEAK dataset to incur much more overhead due to increased number of iterations.
 \end{enumerate}
 \subsubsection{Sequential Cost}	
-A cost not considered until now is the cost for the sequential part of the program i.e Cholesky Factorization(Section \ref{Cholesky Factorization}). As mentioned above, the cost for Cholesky Factorization is incurred for every IPM iteration and is dependent only on the square of the reduced rank of the matrix, $p^2$. Since the process is non-parallelizable, the overhead will be constant for the PSVR process for a particular dataset, independent of the number of machines used.
+A cost not considered until now is the cost for the sequential part of the program i.e Cholesky Factorization(Section \ref{Cholesky Factorization}). As mentioned above, the cost for Cholesky Factorization is incurred for every IPM iteration and is dependent only on the square of the reduced rank of the Kernel Matrix, $p^2$. Since the process is non-parallelizable, the overhead will be constant for the PSVR process for a particular dataset, independent of the number of machines used.
 \newline The graphs below plot the observed speedup, speedup without the Cholesky Factorization(CF) and the ideal speedup.
 \newline
 \newline
@@ -764,20 +764,19 @@ coordinates {(1,1)(2, 1.89)(5, 3.71)(10, 6.33)(20, 9.12)(40, 11.10)(50, 11.81)};
 \end{axis}
 \end{tikzpicture}
 \ \\
-\centerline{Figure 4.3. Speedup for various datasets excluding Synchronous component.}
+\centerline{Figure 4.3. Speedup for various datasets excluding sequential component.}
 \newline\newline
-From the graphs in Figure 4.3, we see that even if we disregard the sequential portions of the program, none of these speedup curves follow the ideal speedup curve. The deviation from the ideal speedup in these graphs is due to the Synchronization and Communication overheads.
-\newline\newline
-From the graphs in Figure 4.3, we can also make certain observations regarding the nature of the speedup curve.
+From the graphs in Figure 4.3, the following observations can be made regarding the nature of the speedup curve:
 \begin{enumerate}[label=(\alph*)]
+\item If the time taken for Cholesky Factorization is disregarded for all datasets, the speedup curve obtained by varying number of machines used is similar (not identical) across datasets, verifying the effect of the Sequential portion of the program on the speedup. The deviation of the speedup curves obtained after disregarding the time for Cholesky Factorization from the ideal speedup in these graphs is due to the Synchronization and Communication overheads explained in Section \ref{Overhead}.
 \item With fewer machines, the effect of the Cholesky Factorization portion on the speedup is not observable, as the time taken for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of executing the sequential portion significant.
-\item For smaller datasets, the speedup deteriorated at a much faster rate as compared to the larger ones, when the Cholesky Factorization was included. For smaller datasets, the time for each iteration (and overall time) is much smaller than for the larger datasets and so, by using a few machines $(m < 40)$, the time taken for all portions of the program except the sequential portions reduces quickly. This means that even with a few machines, the time taken for the sequential portion of the program becomes significant and reduces the speedup achieved. For larger datasets, this same effect of the sequential portion of the program is not observed until several more machines are used as the time taken for the execution of the sequential portion is insignificant compared to the time taken for the execution for the rest of the algorithm in each iteration when only a few machines are used.
-\item The effect of Choleskly Factorization on datasets of similar size but different number of iterations required for convergence(SARCOS and AIMPEAK) is verified. Without the Cholesky Factorization, the difference in speedup is attributed to only the Communication and Synchronization overheads and this speedup curve is similar for both datasets, but if the Choleskly Factorization is included, the speedup for the SARCOS dataset is much more than for the AIMPEAK dataset since fewer iterations are required for convergence.
+\item For smaller datasets, the speedup deteriorates at a much faster rate as compared to the larger ones, when the Cholesky Factorization is considered. The same reasoning as for (b) can be applied here. The time taken for execution of the program for larger datasets is much more than for the smaller datasets, so the time taken for the execution of the sequential portion of the program becomes significant with fewer machines used, as the remainder of the program scales nearly linearly, while the time taken for execution of the sequential portion remains the same.
+\item The effect of Choleskly Factorization on datasets of similar size but requiring different number of iterations required for convergence(SARCOS and AIMPEAK) is significant. The speedup curves obtained after disregarding the time for Cholesky Factorization are similar for both datasets, but if the Choleskly Factorization is included, the speedup for the SARCOS dataset is much more than for the AIMPEAK dataset. This is because for the AIMPEAK dataset, more iterations are required for the convergence of a solution implying more executions of the sequential portion of the program, which negatively affects the speedup at each iteration.
 \end{enumerate}
-From Amdahl's law, the speedup that can be achieved is capped by the un-parallelizable portions of the program. From our results and observations above, this means that for a larger speedup, the time taken for the un-parallelizable portion of the program needs to be insignificant compared to the rest of the program, which is the case for larger datasets. So, {\bf larger the dataset, greater is the speedup we can achieve by increasing the machines used.} For smaller datasets, since the time taken for the un-parallelizable portion of the program is not insignificant, the speedup that can be achieved will be limited.
+From Amdahl's law, the speedup that can be achieved is capped by the un-parallelizable portions of the program. From the results and observations above, this means that for a larger speedup, the time taken for the un-parallelizable portion of the program needs to be insignificant compared to the rest of the program, which is the case for larger datasets. So, {\bf larger the dataset, greater is the speedup we can achieve by increasing the machines used.} For smaller datasets, since the time taken for the un-parallelizable portion of the program is not insignificant, the speedup that can be achieved will be limited.
 \subsection{Summary of Results}
 \label{Summary of Results}
-From the observations in the previous subsections, we can make certain observations:
+From the observations in the previous subsections, the following observations can be made:
 \begin{enumerate}[label=(\alph*)]
 \item {\bf PSVR successfully parallelizes SVR algorithm}
 \newline
@@ -785,27 +784,27 @@ The following observation can be made from Table 4.2; For a given dataset, PSVR 
 
 \item {\bf Predictive performance of PSVR nearly equivalent to existing state-of-the-art}
 \newline
-In Table 4.1, we compare the predictive performance of PSVR to that of the state-of-the-art SVR implementation(LIBSVM) and observe that for each of the datasets, the predictive performance of PSVR is nearly equivalent to that of LIBSVM even with the Kernel Matrix approximation.
+In Table 4.1, the predictive performance of PSVR was compared to that of the state-of-the-art SVR implementation (LIBSVM) and it was observes that for each of the datasets, the predictive performance of PSVR is nearly equivalent to that of LIBSVM even with the Kernel Matrix approximation.
 \newline
 The rank-ratio($p/n$) of the approximated Kernel Matrix, utilized to achieve a nearly equivalent predictive performance, is dependent on the size of the dataset. As the size of the dataset increases, the rank-ratio of the approximated matrix used decreases. This means for larger datasets, the size of the matrix to actually be considered will be smaller.
 
 \item {\bf PSVR outperforms existing state-of-the-art with respect to computational time}
 \newline
-In Table 4.2, we also tabulate the time taken for the state-of-the-art (LIBSVM) and notice that the time taken for PSVR to compute the solution, in most cases, is much less than that for LIBSVM. For larger datasets, the computational time is significantly less for each setting of machines used. 
+In Table 4.2, the time taken for the state-of-the-art (LIBSVM) SVR implementation to produce a the regression is tabulated along with the time for PSVR to do the same and it can be observed that the time taken for PSVR to compute the solution, in most cases, is much less than that for LIBSVM. For larger datasets, the computational time is significantly less for each setting of machines used. 
 \newline
 For smaller datasets, this is not always the case; LIBSVM outperforms PSVR when run on only one machine, but with parallelization PSVR converges to a solution much faster than LIBSVM. The reason for LIBSVM initially outperforming PSVR is that LIBSVM is better equipped to handle smaller datasets and can perform several optimizations (Kernel Caching) to speed up performance. These optimizations do not scale well with larger datasets. When parallel machines are used, the PSVR process speeds up nearly linearly to decrease the time taken for computation.
 \end{enumerate}
 \cleardoublepage
 \section{Conclusion}
-Through the course of this paper, we have highlighted the salient features of Support Vector Regression and identified the need for a SVR implementation that allows usage of large datasets. Following this, a novel Parallel Support Vector Regression(PSVR) algorithm was proposed which  allowed the SVR convex optimization problem to be efficiently solved by reducing the initial memory requirement from $O(n^2)$ to $O(np/m)$ and the computational complexity from $O(n^3)$ to $O(np^2/m)$,  where $m$ is the number of machines available, $n$ is the number of training instance and $p$ is the reduced matrix dimension with $p << n$. PSVR  achieves this through a combination of distributing the computational load among parallel machines and performing a matrix approximation of the Kernel matrix.
+Through the course of this paper, the salient features of Support Vector Regression have been highlighted and the need for a SVR implementation that allows usage of large datasets have been identified. Following this, a novel Parallel Support Vector Regression(PSVR) algorithm was proposed which  allowed the SVR convex optimization problem to be efficiently solved by reducing the initial memory requirement from $O(n^2)$ to $O(np/m)$ and the computational complexity from $O(n^3)$ to $O(np^2/m)$,  where $m$ is the number of machines available, $n$ is the number of training instance and $p$ is the reduced matrix dimension with $p << n$. PSVR  achieves this through a combination of distributing the computational load among parallel machines and performing a matrix approximation of the Kernel matrix.
 \newline\newline
-The proposed PSVR algorithm was then implemented in C++ using the Message Parsing Interface and through experiments we verified that PSVR outperformed the state-of-the-art SVR implementation with respect to computational complexity in almost all cases. We also verified that PSVR had nearly equivalent predictive accuracy as the state-of-the-art implementations. The overheads associated with the PSVR algorithm and implementation were also explained and supported by the results of the experiments. 
+The proposed PSVR algorithm was implemented in C++ using the Message Parsing Interface and through experiments it was verified that PSVR outperformed the state-of-the-art SVR implementation with respect to computational complexity in almost all cases. It was also verified that PSVR had nearly equivalent predictive accuracy as the state-of-the-art implementation. The overheads associated with the PSVR algorithm and implementation were also explained and supported by the results of the experiments. 
 \newline
 \newline
-{\bf Through the course of these experiments, we could firmly establish that Parallel Support Vector Regression effectively solves the scalability issues associated with Support Vector Regression for usage with larger datasets.}
+{\bf Through the course of these experiments, it can be firmly establish that Parallel Support Vector Regression effectively solves the scalability issues associated with Support Vector Regression for usage with larger datasets.}
 \newline
 \newline
-This being said, although PSVR is effective and can be used for smaller datasets, LIBSVM and other SVR implementations which have been specifically optimized for smaller datasets maybe a better option, if a insufficient number of parallel machines are available. For larger datasets, PSVR outperforms LIBSVM even if only a single machine is used and is the clear choice for usage.
+This being said, although PSVR is effective and can be used for smaller datasets, LIBSVM and other SVR implementations which have been specifically optimized for smaller datasets maybe a better option, if an insufficient number of parallel machines are available. For larger datasets, PSVR outperforms LIBSVM even if only a single machine is used and is the clear choice for usage.
 \newline\newline
 The PSVR implementation is available at \url{https://github.com/akshayv/psvr}. 
 \subsection{Future Improvements}
