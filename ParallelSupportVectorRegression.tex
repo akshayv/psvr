@@ -1,5 +1,5 @@
 \documentclass[12pt]{article}
-\linespread{1.5}
+\linespread{1.6}
  \usepackage{amsmath}
  \usepackage{hyperref}
 % waste less space on A4 size paper 
@@ -15,10 +15,8 @@
 \usetikzlibrary{matrix}
 \usepgfplotslibrary{groupplots}
 \pgfplotsset{compat=newest}
-\selectfont
 \newcounter{reportpage}
  \begin{document}
- \renewcommand{\baselinestretch}{1.50}\normalsize
 \begin{titlepage}
 \begin{centering}
 \large
@@ -532,32 +530,31 @@ For each dataset, $10\%$ of the training instances were randomly selected as tes
 The experiments were conducted on the NUS Tembusu Computing cluster using 1-50 processing cores, each of which had a nearly identical configuration of Intel(R) Xeon(R) CPU E5620 @ 2.40GHz and 20 GB memory, running Linux CentOS 6.5. The experiments were conducted by varying the number of processing cores $(m)$ = 1, 2, 5, 10, 20, 40 and 50.
 \subsection{Prediction Accuracy}
 \label{Prediction Accuracy}
-One of the distinguishing factors of PSVR which allows it to be scalable and time-efficient is the usage of ICF, to approximate the Kernel matrix with dimensions $n \times n$ to one with dimensions $n \times p$ with $p << n$. One concern with the usage of this matrix approximation technique is the accuracy of the Regression model. To address this issue, in this section, the prediction accuracy of PSVR will be compared to that of a state-of-the-art SVR implementation (which uses the full-rank matrix).
-\newline
+One of the distinguishing factors of PSVR which allows it to be scalable and time-efficient is the usage of ICF, to approximate the Kernel matrix with dimensions $n \times n$ to one with dimensions $n \times p$ with $p << n$. One concern with the usage of this matrix approximation technique is the accuracy of the Regression model. To address this issue, in this section, {\bf the prediction accuracy of PSVR will be compared to that of a state-of-the-art SVR implementation (which uses the full-rank matrix). }
+\newline\newline
 LIBSVM has has been selected for this comparison as it is arguably the most efficient open-source SVR implementation in terms of both speed and accuracy (Lin et al.). Specifically, LIBSVM-3.2 has been used and the parameters for training remain uniform for both implementations.
 \newline
 The accuracy for each implementation along with the corresponding rank ratios of the approximated matrices have been tabulated below. 
-The accuracy in this case corresponds to Root Mean Square Error (RMSE).
+The accuracy measure selected in this case is the Root Mean Square Error (RMSE) $= \sqrt{\frac{1}{n} \sum_{i=1}^{n}{(y_{i} - f(x_{i}))^2}}$, where $n$ corresponds to the number of testing instances.
 \begin{center}
 \begin{tabular}{ |c|c|c|c|c| }
   \hline
-  Dataset & Size & $p/n$ & PSVR Accuracy & LIBSVM Accuracy \\
+  Dataset & Size & $p/n$ & PSVR Accuracy (RMSE) & LIBSVM Accuracy (RMSE) \\
   \hline
   SARCOS & 40k& 0.02& 5.21 & 4.84 \\
   AIMPEAK & 40k & 0.03 & 8.93 & 8.88 \\
   HADSST & 170k & 0.01 & 0.673 &0.646 \\
-  HOUSING & 600k & 0.002 & 0.640 & 0.484 \\
+  HOUSING & 600k & 0.002 & 0.820 & 0.804 \\
   \hline
 \end{tabular}
 \ \\
 \ \\
 Table 1. Predictive accuracy of PSVR. ($p$ is set to the optimal value  after experimentation)
 \end{center}
-\ \\
-We can see from the table above that for the larger datasets, the accuracy for PSVR when $ p << n$ is nearly equal to that of LIBSVM. For the smaller datasets, the required value of $p$ to achieve similar accuracy is relatively larger.
+We can see from the table above that {\bf for the larger datasets, the accuracy for PSVR when $ p << n$ is nearly equal to that of LIBSVM.} For the smaller datasets, the required value of $p$ to achieve similar accuracy is relatively larger.
 \subsection{Scalability/Speedup}
 \label{Scalability/Speedup}
-To determine the scalability of PSVR, we consider the same 4 datasets and observe the time taken to determine the regression model (over 3 separate readings, considering the average)for each dataset while using a varying number of processing cores. Using these timings, we will determine the speedup relative to the number of processing cores used with and without known sequential segments of the IPM algorithm (see \ref{Cholesky Factorization})
+To determine the scalability of PSVR, we consider the same 4 datasets and observe the time taken to determine the regression model (over 3 separate readings, considering the average)for each dataset while using a varying number of processing cores. Using these timings, {\bf we will determine the speedup relative to the number of processing cores used and based on this judge the scalability of PSVR}. For comparison, the time taken to train the regression model using the state-of-the-art SVR implementation (LIBSVM) for each dataset with the same parameters as PSVR and same processor configuration has also been included. 
 \begin{center}
 \begin{tabular}{ |c|c|c|c|c|c|c|c|c| }
   \hline
@@ -580,7 +577,6 @@ To determine the scalability of PSVR, we consider the same 4 datasets and observ
 \ \\
 Table 2. Speedup of process using PSVR. ($p$ is set to the corresponding value in Table 1 and the predictive accuracy remains constant for each dataset)
 \end{center}
-\ \\
 The speedup observed tabulated in Table 2 have been plotted in the following graphs.
 \newline\newline
 \begin{tikzpicture}
@@ -636,21 +632,23 @@ We can make 3 observations from the tabulation and graphs,
 \begin{enumerate}[label=(\alph*)]
 \item Larger the size of the dataset, larger is the speedup as the number of machines used increases.
 \item For all datasets, the speedup begins to decreases after a threshold number of machines are used.
-\item For datasets of the same size, the speedup depends on the time for the sequential run (time taken for a single processor).
+\item For datasets of the same size, the speedup obtained depends on the time for the sequential run (time taken for a single processor to train the dataset).
 \end{enumerate}
-Points (a) and (b) are analysed in detail in the following section.\\
-The reasoning behind point (c) is intuitive, the number of iterations taken for the convergence of the solution is dependent on the nature of the  dataset, and is directly linked to the time taken for convergence. Increased number of iterations leads to increased communication overhead and more executions of the sequential portion of the code (see \ref{Cholesky Factorization}) leading to reduced speedup.
+Points (a) and (b) are analyzed in detail in the following section.\\
+The reasoning behind point (c) is intuitive: depending on the nature of the dataset, the number of iterations required for the convergence of the solution varies, and larger number of iterations implies increased training time. Increase in the number of iterations would also mean that the total communication overhead incurred and executions of the sequential portion of the code (see Section \ref{Cholesky Factorization}) increases leading to decrease in speedup.
+\newline\newline
+{\bf From Figure 1 and Table 2, it can be observed that although the speedup is not ideal, PSVR is able to parallelize the SVR algorithm and scales with increased number of machines used, more effectively so for larger datasets.}
 \subsection{Overhead}
 \label{Overhead}
 From the graphs in Figure 1, we can see that for each of the datasets, the speedups are not ideal, and that the individual speedups vary between datasets.
-The following section attempts to explain the overheads incurred by PSVR which affect the overall speedup of the process.
+{\bf The following section attempts to explain the overheads incurred by PSVR which affect the overall speedup of the process.}
 \newline\newline
 Usage of parallel computing in PSVR incurs two types of overheads, Communication overhead and Synchronization overhead.
 \begin{itemize}
 \item Communication overhead corresponds to the overhead incurred due to broadcast and transmission of messages over the network as part of MPI. 
 \newline
 As the number of machines used increases, the communication over the network at each step increases as well, implying more Communication overhead with increase number of machines.The increase in overhead could be minimal\footnotemark or substantial depending on the underlying architecture of the supercomputing cluster.
- \footnotetext{In Figure 2, we notice that the Communication overhead rises significantly until m = 5 and then the increase is minor; The collective operations using MPI3 are substantially faster for processors on the same machine (since network traffic is minimized) and after m $\geq$ 5, while the number of processors per machines used increases, the number of physical machines used remains the same, casing the overhead to increase minimally for subsequent values of m(since inter-processor communication does not rely on the network).}
+ \footnotetext{In Figure 2, we notice that the Communication overhead rises significantly until m = 5 and then the increase is minor; The collective operations using MPI3 are substantially faster for processors on the same physical machine (since network traffic is minimized) and after m $\geq$ 5, while the number of processors per physical machines used increases, the number of physical machines used remains the same, causing the overhead to increase minimally for subsequent values of m(since inter-processor communication does not rely on the network).}
 \item Synchronization overhead occurs due to non-identical configuration of the machines used. Various machines are capable of executing the program at various speeds and after each step in PSVR, a synchronization occurs (using MPIBarrier) which ensures that every machine has reached the same point of execution (to prevent the situation that one of the machines fails but the other machines aren't notified).
 \end{itemize}
 The graphs below plot the Communication and Synchrnoization overhead for each of the datasets using varying number of machines.
@@ -675,8 +673,6 @@ The graphs below plot the Communication and Synchrnoization overhead for each of
     };
     \label{plots:housing}
     \coordinate (top) at (rel axis cs:0,1);% coordinate at top of the first plot
-    
-    
     \nextgroupplot [title={Synchronization Overhead},xlabel={Machines used},,xmin=0, xmax=60,ymin=0, ymax=40,xtick={0,10,20,30,40,50, 60},ytick={0, 10,20, 30, 40},legend pos=north west,xmajorgrids=true,grid style=dashed,] 
 \addplot[color=red,mark=square*,]coordinates {(1,0)(2, 0.62)(5, 8.3)(10, 10.4)(20, 10.6)(40, 6.4)(50, 8.12)};
 \addplot[color=green,mark=triangle*,]
@@ -713,10 +709,10 @@ coordinates {(1,0)(2, 2.57)(5, 12.5)(10, 22)(20, 23)(40, 25)(50, 23)};
 We can make certain observations from these graphs.
 \begin{enumerate}[label=(\alph*)]
 \item For the larger dataset, although both the overheads are comparable to that of the smaller datasets, the speedup is affected less due to the fact that the computational time for the program is much more than the time for the overheads.
-\item We also observe that for the SARCOS and AIMPEAK datasets (which have approximately the same number of training instances,), there is significant difference in the overhead, and therefore the speedups. This is due to the nature if the datasets; The SARCOS dataset converges to a solution in much fewer iterations than the AIMPEAK dataset, causing the AIMPEAK dataset to incur much more overhead.
+\item We also observe that for the SARCOS and AIMPEAK datasets (which have approximately the same number of training instances,), there is significant difference in the overhead, and therefore the speedups. This is due to the nature if the datasets; The SARCOS dataset converges to a solution in much fewer iterations than the AIMPEAK dataset, causing the AIMPEAK dataset to incur much more overhead due to increased number of iterations.
 \end{enumerate}
 \subsubsection{Sequential Cost}	
-A cost not considered until now is the cost for the sequential part of the program i.e Cholesky Factorization(\ref{Cholesky Factorization}). As mentioned above, the cost for Cholesky Factorization is incurred for every IPM iteration and is dependent only on the reduced rank of the matrix, $p$. Since the process is non-parallelizable, the overhead will be constant for the PSVR process for a particular dataset, independent of the number of machines used.
+A cost not considered until now is the cost for the sequential part of the program i.e Cholesky Factorization(Section \ref{Cholesky Factorization}). As mentioned above, the cost for Cholesky Factorization is incurred for every IPM iteration and is dependent only on the square of the reduced rank of the matrix, $p^2$. Since the process is non-parallelizable, the overhead will be constant for the PSVR process for a particular dataset, independent of the number of machines used.
 \newline The graphs below plot the observed speedup, speedup without the Cholesky Factorization(CF) and the ideal speedup.
 \newline
 \newline
@@ -770,10 +766,10 @@ From these graphs, we still see that none of these speedup curves follow the ide
 \newline\newline
 From these graphs, we can also make certain observations regarding the nature of the speedup curve.
 \begin{enumerate}[label=(\alph*)]
-\item With fewer machines, this effect of the Cholesky Factorization portion is not observed as the time taken	 for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of the sequential portion significant.
-\item For smaller datasets the speedup deteriorated at a much faster rate compared to the larger one. For the former, the time taken for each iteration is significantly smaller than for the latter and so, with fewer machines, we observe the significance of the cost for the Cholesky Factorization. For larger datasets, the effect of the Choleskly Factorization is not observed until we use more machines as the time taken for its execution is still much less than the time taken for the execution for the rest of the algorithm in each iteration.
+\item With fewer machines, this effect of the Cholesky Factorization portion is not observed as the time taken for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of the sequential portion significant.
+\item For smaller datasets, the speedup deteriorated at a much faster rate as compared to the larger ones, when the Cholesky Factorization was included. For smaller datasets, the time for each iteration (and overall time) is much smaller than for the larger datasets and so, by using a few machines $(m < 40)$, the time taken for all portions of the program except the sequential portions reduces quickly. This means that even with a few machines, the time taken for the sequential portion of the program becomes significant and reduces the speedup achieved. For larger datasets, this same effect of the sequential portion of the program is not observed until several more machines are used as the time taken for the execution of the sequential portion is insignificant compared to the time taken for the execution for the rest of the algorithm in each iteration when only a few machines are used.
 \end{enumerate}
-From Amdahl's law, the speedup that can be achieved is capped by the un-parallelizable portions of the program. This along with our above observations would mean that larger the dataset, greater is the speedup we can achieve by increasing the machines used(since the time taken for the parallelizable portion will be much more that that of the sequential portion).
+From Amdahl's law, the speedup that can be achieved is capped by the un-parallelizable portions of the program. From our results and observations above, this means that for a larger speedup, the time taken for the un-parallelizable portion of the program needs to be insignificant compared to the rest of the program, which is the case for larger datasets. So, {\bf larger the dataset, greater is the speedup we can achieve by increasing the machines used.} For smaller datasets, since the time taken for the un-parallelizable portion of the program is not insignificant, the speedup that can be achieved will be limited.
 \subsection{Summary of Results}
 \label{Summary of Results}
 From the observations in the previous subsections, we can make certain observations:
@@ -810,7 +806,7 @@ The PSVR implementation is available at \url{https://github.com/akshayv/psvr}.
 \subsection{Future Improvements}
 The PSVR project still has potential for improvements, the most salient of which being:
 \begin{itemize}
-\item A pre-processing step could be introduced to determine the optimal parameter values for the SVR training process, possibly through maximum likelihood estimates. Th e importance of this feature stems from the fact that the tuning of parameters in the SVR process makes a significant difference in the predictive accuracy and re-training the entire model to find the optimal parameter values would significantly increase the computational time.
+\item A pre-processing step could be introduced to determine the optimal parameter values for the SVR training process, possibly through maximum likelihood estimates. The importance of this feature stems from the fact that the tuning of parameters in the SVR process makes a significant difference in the predictive accuracy and re-training the entire model to find the optimal parameter values would significantly increase the computational time.
 \item One of the requirements for both the Incomplete Cholesky Factorization and Cholesky Factorization processes is that the matrix to be factorized be a symmetric, positive-definite matrix and the matrices generated by using the standard Kernel Functions satisfy this criteria. There exists an extension of the standard Radial Basis Kernel Function which allows varying the hyperparameters for each of the input features to provide a more accurate regression model. Unfortunately, the Kernel matrix that is constructed from this modified function does not satisfy the conditions of a positive semi-definite matrix. Using a smaller rank ratio to approximate this matrix provides worse results compared to matrix generated by the standard Kernel Functions with the same rank ratio. This issue can be alleviated by using a large rank ratio for the approximated matrix, but this would incur a larger computational cost in the process of performing a Cholesky factorization, so is currently sub-optimal. Resolving this issue would improve predictive performance of PSVR (although not significantly).
 \end{itemize}
 \cleardoublepage
@@ -878,43 +874,44 @@ At the end of the algorithm, $H$ is stored distributedly on $m$ machines, ready 
  
   \bibitem{svrtut}Smola A.,  Scholkopf B. {\em A Tutorial on Support Vector Regression} 2004:  Statistics and computing 14.3: 199-222.
   
-  \bibitem{convopt}Boyd S. {\em Convex optimization}  2004: Cambridge University Press.
-
-
-  \bibitem{esl}Hastie T. {\em Elements of Statistical Learning} 2009:  Vol. 2. No. 1. New York: Springer.
-  
-  \bibitem{psvm1} Wu G., Chang E., Chen Y.K., Hughes C.  {\em Incremental Approximate Matrix Factorization for Speeding up Support Vector Machines} 2006: Proceedings of the 12th ACM SIGKDD international conference on Knowledge discovery and data mining. ACM.
-
-  \bibitem{pgp} Chen J., Cao N., Low K. H.,  Ouyang R., Tan C. K., Jaillet P.  {\em Parallel Gaussian Process Regression with Low-Rank Covariance Matrix Approximations} 2013: arXiv preprint arXiv:1305.5826
-  
- \bibitem{cassvm} Graf, H. P., Cosatto, E., Bottou, L., Dourdanovic, I., Vapnik, V.  {\em Parallel Support Vector Machines: The Cascade SVM} 2005: In Advances in neural information processing systems 17, 521-528
-  
-  \bibitem{psvm}Chang E., Zhu K., Wang H., Bai H.  {\em PSVM: Parallelizing Support Vector Machines on Distributed Computers} 2007: In Proc. NIPS.
-  
-  \bibitem{convoptme} Mehrotra S.  {\em On the implementation of a primal-dual interior point method} 1992: SIAM J. Optimization, 2.
-  
-  \bibitem{svrthesis}Smola A. {\em Regression
+ \bibitem{esl}Hastie T. {\em Elements of Statistical Learning} 2009:  Vol. 2. No. 1. New York: Springer.
+    
+ \bibitem{svrthesis}Smola A. {\em Regression
 Estimation with Support Vector Learning Machines} 1996: Master's thesis, Technische Universit at Munchen.
-  
-  \bibitem{ipmsvm}Woodsend K. {\em Using Interior Point Methods for Large-scale Support Vector Machine training} 2010
-  
+
+
+\bibitem{nu-svm}Sch\"olkopf, B., A. J. Smola, and R. Williamson. {\em Shrinking the tube: A new support vector regression algorithm} 1999: In M. S. Kearns, S. A. Solla, and 22 D. A. Cohn (Eds.), Advances in Neural Information Processing Systems, Volume 11, Cambridge, MA. MIT Press
+
 \bibitem{}Bekkerman, R., Bilenko, M., and Langford, J. {\em Scaling up Machine Learning: Parallel and Distributed Approaches} 2011: Cambridge Univ. Press, NY.
 
-\bibitem{chunkingsvr}E. Osuna, R. Freund, and F. Girosi. {\em Training support vector machines: an application to face detection} 1997: In Proceedings of the 1997 Conference on Computer Vision and Pattern Recognition, pp. 130–136
+ \bibitem{psvm}Chang E., Zhu K., Wang H., Bai H.  {\em PSVM: Parallelizing Support Vector Machines on Distributed Computers} 2007: In Proc. NIPS.
+ 
+ \bibitem{psvm1} Wu G., Chang E., Chen Y.K., Hughes C.  {\em Incremental Approximate Matrix Factorization for Speeding up Support Vector Machines} 2006: Proceedings of the 12th ACM SIGKDD international conference on Knowledge discovery and data mining. ACM.
+
+ \bibitem{pgp} Chen J., Cao N., Low K. H.,  Ouyang R., Tan C. K., Jaillet P.  {\em Parallel Gaussian Process Regression with Low-Rank Covariance Matrix Approximations} 2013: arXiv preprint arXiv:1305.5826
+ 
+\bibitem{SMO}J. C. Platt {\em Fast training of support vector machines using sequential minimal optimization} 1999: Advances in kernel methods: support vector learning, pp. 185–208
 
 \bibitem{kernelcaching}T. Joachims. {\em Making large-scale support vector machine learning practical} 1999: Advances in kernel methods: support vector learning, pp. 169–184
 
-\bibitem{SMO}J. C. Platt {\em Fast training of support vector machines using sequential minimal optimization} 1999: Advances in kernel methods: support vector learning, pp. 185–208
-
-\bibitem{SARCOS}Vijayakumar, S., D’Souza, A., and Schaal, S. {\em Incremental online learning in high dimensions} 2005: Neural Comput., 17(12), pp 2602–2634.
-
-\bibitem{picf} Golub, G. H., Loan, C. F. V. {\em Matrix computations} 1996: Johns Hopkins University Press.
-
-\bibitem{libsvm-soa}Lin C., Bottou L. {\em Support Vector Machine Solvers} 2005: MIT Press
+\bibitem{chunkingsvr}E. Osuna, R. Freund, and F. Girosi. {\em Training support vector machines: an application to face detection} 1997: In Proceedings of the 1997 Conference on Computer Vision and Pattern Recognition, pp. 130–136
 
 \bibitem{mrpsvm}H. X. Zhao, F. Magoules. {\em New parallel support vector regression for predicting building energy consumption}.2011: IEEE Symposium Series on Computational Intelligence (SSCI 2011), Paris, France. IEEE Computer Society
 
-\bibitem{nu-svm}Sch\"olkopf, B., A. J. Smola, and R. Williamson. {\em Shrinking the tube: A new support vector regression algorithm} 1999: In M. S. Kearns, S. A. Solla, and 22 D. A. Cohn (Eds.), Advances in Neural Information Processing Systems, Volume 11, Cambridge, MA. MIT Press
+ \bibitem{cassvm} Graf, H. P., Cosatto, E., Bottou, L., Dourdanovic, I., Vapnik, V.  {\em Parallel Support Vector Machines: The Cascade SVM} 2005: In Advances in neural information processing systems 17, 521-528
+
+\bibitem{picf} Golub, G. H., Loan, C. F. V. {\em Matrix computations} 1996: Johns Hopkins University Press.
+
+  \bibitem{convoptme} Mehrotra S.  {\em On the implementation of a primal-dual interior point method} 1992: SIAM J. Optimization, 2.
+
+ \bibitem{convopt}Boyd S. {\em Convex optimization}  2004: Cambridge University Press.
+  
+  \bibitem{ipmsvm}Woodsend K. {\em Using Interior Point Methods for Large-scale Support Vector Machine training} 2010
+  
+\bibitem{libsvm-soa}Lin C., Bottou L. {\em Support Vector Machine Solvers} 2005: MIT Press
+
+\bibitem{SARCOS}Vijayakumar, S., D’Souza, A., and Schaal, S. {\em Incremental online learning in high dimensions} 2005: Neural Comput., 17(12), pp 2602–2634.
+
 
   \end{thebibliography}
  \end{document}
