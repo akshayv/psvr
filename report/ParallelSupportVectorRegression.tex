@@ -65,7 +65,7 @@ Deliverables:\\
 \addcontentsline{toc}{section}{\protect\numberline{}Abstract}%
 \end{center}
 \begin{adjustwidth}{2 cm}{2 cm} 
-Support Vector Regression suffers from known scalability issues with respect to both memory usage as well as computational time which makes it unusable with larger datasets. To alleviate these bottlenecks, Parallel Support Vector Regression (PSVR) has been proposed and implemented, which utilizes multi-core processors and computing clusters to distributedly compute the regression model as well as use matrix factorization techniques to reduce the overall computation required to be performed. If the number of training instances is $n$, the rank of the factorized matrix is $p$ and the number of available machines is $m$, PSVR successfully reduces the memory requirement from $O(n^2)$ to $O(np/m)$ where $p << n$; and the computational complexity from $O(n^3)$ to $O(np^2/m)$. Experiments performed examine the effectiveness of PSVR from both an accuracy and scalability standpoint.\\
+Support Vector Regression suffers from known scalability issues with respect to both memory usage as well as computational time, which makes it unusable with larger datasets. To alleviate these bottlenecks, Parallel Support Vector Regression (PSVR) has been proposed and implemented, which utilizes multi-core processors and computing clusters to distributedly compute the regression model as well as use matrix factorization techniques to reduce the overall computation required to be performed. If the number of training instances is $n$, the rank of the factorized matrix is $p$ and the number of available machines is $m$, PSVR successfully reduces the memory requirement from $O(n^2)$ to $O(np/m)$ where $p << n$; and the computational complexity from $O(n^3)$ to $O(np^2/m)$. Experiments performed examine the effectiveness of PSVR from both an accuracy and scalability standpoint.\\
 The implementation of PSVR is available at:
 \begin{center}
  \url{https://github.com/akshayv/psvr}
@@ -115,9 +115,9 @@ My family and friends for their emotional support through this period.
 \section{Introduction}
 This research project focuses on developing a parallel implementation of the Support Vector Regression(SVR) algorithm which allows usage of SVR for analysis of large datasets by exploiting multi-core processors and computing clusters. 
 \subsection{Motivation}
-Regression analysis is a Machine Learning task which aims to establish relationships among input variables, and has several applications including prediction and forecasting of variables. With the increasing ease of data collection over the recent years, the dependence of regression analysis to model this data has risen as well. One instance of a learning model which can be effectively used for regression analysis is Support Vector Regression.
+Regression analysis is a Machine Learning task which aims to establish relationships among variables, and has several applications including prediction and forecasting of variables. With the increasing ease of data collection over the recent years, the dependence on regression analysis to model this data has risen as well. One instance of a learning model which can be effectively used for regression analysis is Support Vector Regression.
 \newline\newline
-Support Vector Regression (SVR), a variation of Support Vector Machines, is a supervised learning algorithm which produces a regression model using a relevant subset of the input training data. Although several different approaches exist for regression analysis, SVR boasts many advantages over the conventional regression methods, which make it suitable for several regression applications. These advantages include:
+Support Vector Regression (SVR), a variation of Support Vector Machines, is a supervised learning algorithm which produces a regression model using a relevant subset of the training data. Although several different approaches exist for regression analysis, SVR boasts many advantages over the conventional regression methods, which make it suitable for several regression applications. These advantages include:
 \begin{itemize}
 \item {\bf Mapping data to higher dimensional spaces.}
 For a regression technique to be effective, it must be robust in being able to determine non-linear regression models from the input data.
@@ -125,7 +125,7 @@ SVR achieves this but utilizing the Kernel Trick, which efficiently maps data in
 \item {\bf Allowance for maximum deviation.}
 The commonly used SVR variation, $\epsilon-$SVR utilizes a $\epsilon-$ insensitive loss function to determine a regression model where each data instance has at most $\epsilon$ deviation from the predicted value. This loss function allows SVR to modify the regression model depending on the requirements, for example if you are performing a currency exchange and do not want a deviation greater than $\epsilon$.
 \item {\bf Robust Regression Model.}
-Soft-Margin SVR, similar to Soft-Margin SVM, has an allowance for corrupt data instances. This is important for real data since incorrect data instances may be present due to a variety of factors. The hyper parameter $C$ eliminates usage of most incorrect data instances and ensures a robust regression model, avoiding overfitting.
+Soft-Margin SVR, similar to Soft-Margin SVM, has an allowance for corrupt data instances. This is important for real data since incorrect data instances may be present due to a variety of factors. The hyper parameter $C$ eliminates usage of most incorrect data instances and ensures a robust regression model, thereby avoiding overfitting.
 \item  {\bf Complexity Independent of Input Attributes size.}
 The complexity of the SVR with regard to both computational cost and memory are negligibly affected by the number of attributes for each data instance, meaning that several supporting attributes can be added to the training instances with negligible difference to the cost.
 \end{itemize}
@@ -149,7 +149,7 @@ Specifically, the following questions will be addressed:
 {\bf How can we manage the computational cost of $O(n^3)$ for the SVR training process for increasingly large datasets in a scalable manner?}
 \setlength{\leftskip}{0pt}
 \newline\newline
-To improve scalability of the SVR algorithm with respect to both memory requirement and computational time, a Parallel Support Vector Regression(PSVR) algorithm has been proposed which uses a low-rank matrix approximation while simultaneously distributing the computational load amongst parallel machines to achieve improved scalability by decreasing the time complexity from $O(n^3)$ to $O(np^2/m)$ and decreasing the memory requirement from $O(n^2)$ to $O(np/m)$ where $n$ is the number of training examples, $p$ is the rank of the reduced matrix after approximation and $m$ is the number of processing cores available.
+To improve scalability of the SVR algorithm with respect to both memory requirement and computational time, a Parallel Support Vector Regression(PSVR) algorithm has been proposed which uses a low-rank matrix approximation of the Kernel Matrix while simultaneously distributing the computational load amongst parallel machines to achieve improved scalability by decreasing the time complexity from $O(n^3)$ to $O(np^2/m)$ and decreasing the memory requirement from $O(n^2)$ to $O(np/m)$ where $n$ is the number of training examples, $p$ is the rank of the reduced matrix after approximation and $m$ is the number of processing cores available.
 \newline\newline
 The successful implementation of the PSVR algorithm would mean:
 \begin{itemize}
@@ -163,11 +163,11 @@ Formulation and successful implementation of this algorithm would mean that the 
 \subsection{Contributions}
 The specific contributions of this project are:
 \begin{itemize}
-\item We present a comprehensive Literature Review of existing SVR implementations which leverage on parallel machines and analyse the differences in the approach (Section \ref{Other Parallel SVR approaches}).
-\item We propose a novel Parallel SVR formulation which leverages on the availability of multiple processing cores and matrix approximation\footnotemark to effectively scale with increasingly large data. We simultaneously analyse and determine the computational time and space complexity of the PSVR formulation (Section \ref{Technical Approach}).
-\item We implement this PSVR formulation using the Message Parsing Interface (MPI) and verify its functioning and correctness on a computing cluster.
-\item We experimentally verify the predictive performance of PSVR to be approximately equivalent to existing state-of-the-art SVR implementation (Section \ref{Prediction Accuracy}).
-\item We experimentally verify that the scalability and computational time of PSVR significantly outperforms the state-of-the-art SVR implementation (Section \ref{Scalability/Speedup}).
+\item A comprehensive Literature Review of existing SVR implementations which leverage on parallel machines is presented and the differences in the approaches are analysed (Section \ref{Other Parallel SVR approaches}).
+\item A novel Parallel SVR formulation is proposed, which leverages on the availability of multiple processing cores and matrix approximation\footnotemark to effectively scale with increasingly large data. The computational time and space complexity of the PSVR formulation (Section \ref{Technical Approach}) is simultaneously  determined .
+\item This PSVR formulation is implemented using the Message Parsing Interface (MPI) and its functioning and correctness is verified on a computing cluster.
+\item The predictive performance of PSVR is verified to be approximately equivalent to existing state-of-the-art SVR implementation (Section \ref{Prediction Accuracy}).
+\item The scalability and computational time of PSVR is verified to significantly outperform the state-of-the-art SVR implementation (Section \ref{Scalability/Speedup}).
 \end{itemize}
 
 \footnotetext{The rank of the approximated matrix is controlled by a parameter and the value of this parameter can varied to achieve the required trade off between accuracy and scalability.}
@@ -227,7 +227,7 @@ subject\ to\ y_{i} - \langle w, x_{i}\rangle - b\ \leq\ \epsilon +\zeta_{i}\\
 w = \sum_{i=1}^{l}{(\alpha_{i} - \alpha^*_{i})x_{i}}, which\ implies\\
   f(x) = \sum_{i=1}^{l}{(\alpha_{i} - \alpha^*_{i}) \langle x_{i}, x \rangle} + b
  \end{align}
- Similar to SVMs, after optimization, only a subset of the $(\alpha_{i} - \alpha^*_{i})$ values are non-zero and these constitute the Support Vectors for the Regression model.The parameter $b$ in the regression model can be computed as a by-product of the convex optimization process as described later.
+ Similar to SVMs, after optimization, only a subset of the $(\alpha_{i} - \alpha^*_{i})$ values are non-zero and these constitute the Support Vectors for the Regression model. The parameter $b$ in the regression model can be computed as a by-product of the convex optimization process as described later.
  \newline
  \newline
  The $K(x_{i}, x_{j})$ component of the above formulation is an inner product matrix between each of the training instances in the datasets\footnotemark. Similar to SVMs the Kernel Trick can be used during the construction of the above matrix to map the training instances in the matrix to a higher dimensional space if required. This component of the formulation will further be represented as $Q$ in the rest of the report.
@@ -271,7 +271,7 @@ Unfortunately, due to the usage of a full-rank Kernel Matrix, these methods will
 \newline\newline
 Table 2.1 compares these approaches to other parallel implementations of SVR.
 \subsubsection{Parallel Cascade SVM}
-Parallel Cascade SVM takes a significantly different approach to solving the Convex Optimization problem. The idea behind Cascade SVM is that the training instances that are not Support Vectors can be eliminated early in the process and do not contribute to the regression model. In Parallel Cascade SVM, each parallel machine optimizes a subset of the training instances, filtering out the instances that do not correspond to Support Vectors. The filtering takes place in hierarchically and the instances from the previous layer are merged at subsequent layers. To obtain global minimum for the optimization, the result of the last layer is fed back to the first layer. The entire training set is (almost) never dealt with at each instance and the last layer has to deal with only a subset of the training instances, depending on the quality of filtering.
+Parallel Cascade SVM takes a significantly different approach to solving the Convex Optimization problem. The idea behind Cascade SVM is that the training instances that are not Support Vectors can be eliminated early in the process and do not contribute to the regression model. In Parallel Cascade SVM, each parallel machine optimizes a subset of the training instances, filtering out the instances that do not correspond to Support Vectors. The filtering takes place hierarchically and the instances from the previous layer are merged at subsequent layers. To obtain global minimum for the optimization, the result of the last layer is fed back to the first layer. The entire training set is (almost) never dealt with at each instance and the last layer has to deal with only a subset of the training instances, depending on the quality of filtering.
 \newline\newline
 The advantages and disadvantages of Parallel Cascade SVM are very similar to those of MRPsvm: Due to the usage of a full-rank Kernel Matrix, the generated regression model will be highly accurate. For datasets whose regression models contain fewer number of Support Vectors, this model will be very effective for usage with large datasets.\newline
 Unfortunately - similar to MRPsvm - due to usage of full-rank Kernel Matrix, this method will not be applicable to smaller computing clusters while using larger datasets. A significant disadvantage, specific to Parallel Cascade SVM, is the fact that its effectiveness is dependent on the nature of the data; If the dataset to be modeled contains a large number of Support Vectors, the top-level processor will be required to optimize all these Support Vectors independently, causing Parallel Cascade SVM to be highly ineffective.
@@ -303,7 +303,7 @@ The following terminology is used in Table 2.1:
   \hline  
   Matrix Decomposition & Yes & Yes & Yes & No \\
   \hline
-  Data Distribution & Yes & Yes & No & No \\
+  Data Distribution & Yes & Yes & Yes & No \\
    \hline
   Local Optimization & No & Yes & Yes & Yes \\
    \hline
@@ -336,7 +336,7 @@ A high-level overview of the PSVR process is as follows:
 \item PSVR begins by distributing the data instances among the available machines in an $i\ modulo\ m$ manner for each data instance $i$ on machine $m$. (Section \ref{Distributed Data Loading and Storage})
 \item The Kernel Matrix is then approximated using the parallel machines and maintained distributedly. (Section \ref{Parallel Incomplete Cholesky factorization})
 \item The parallel machines perform the convex optimization for the instances stored on their respective machines. (Section \ref{Interior Point Method})
-\item The results after optimization are reduced and stored distributedly for each machine. (Section \ref{Comuting B},  \ref{Distributed Data Loading and Storage})
+\item The results after optimization are reduced and stored distributedly on the respective machines. (Section \ref{Comuting B},  \ref{Distributed Data Loading and Storage})
 \end{enumerate}
  The remainder of this section will explain each of these steps in detail and specify the steps taken to ensure PSVR effectively scales with large data.
  \subsection{Distributed Data Loading and Storage}
@@ -346,8 +346,8 @@ A high-level overview of the PSVR process is as follows:
  Each of the $n$ training instances are distributedly loaded onto the $m$ machines in a round robin manner so that instance $i$ is loaded onto machine $i\%m$. The variables computed corresponded to these data instances are stored locally on each machine, while the global variables in the process are replicated on all machines as required. The instances that correspond to Support Vectors after the optimization are also retained locally during the prediction phase, there by reducing the overall computational memory requirement during the entire process.
  \subsection{Parallel Incomplete Cholesky factorization}
  \label{Parallel Incomplete Cholesky factorization}
-  {\bf Parallel Incomplete Cholesky factorization approximates the original Kernel Matrix without constructing the matrix completely. The process occurs in a parallel manner with resulting matrix stored distributedly. The large memory requirements of SVR are scaled in this phase, while minimizing communication overhead.}
-  \newline
+  {\bf Parallel Incomplete Cholesky factorization approximates the original Kernel Matrix without constructing the matrix completely. The process occurs in a parallel manner with the resulting matrix stored distributedly. The large memory requirements of SVR are scaled in this phase, while minimizing communication overhead.}
+  \newline\newline
 A key step in PSVR is the Parallel Incomplete Cholesky Factorization (PICF). While Choleskly Factorization factorizes a symmetric positive-definite matrix of order $n \times n$ into two  identical symmetric matrices each of order $n \times n$, Incomplete Cholesky Factorization factorizes the same matrix into two identical symmetric matrices of order $n \times p$, where $p << n$. In both cases, the original matrix $G$ can be computed as $G \approx HH^T$ where $H$ is the result of the factorization.
  \newline
  \newline
@@ -369,7 +369,7 @@ To overcome these limitations, PSVR performs ICF in a row-based manner(Row-Based
 {\bf The details of Row-Based PICF algorithm have been described in Appendix A.}
  \subsection{Interior Point Method}
  \label{Interior Point Method}
-  {\bf The Interior Point Method is utilized in a parallel manner to solve the convex optimization problem. Most of the computation is performed on the respective machine for each data instance and global values are communicated when required}.
+  {\bf The Interior Point Method is utilized in a parallel manner to solve the convex optimization problem. The computation for each data instance is performed on the corresponding machine and global values are communicated when required}.
   \newline\newline
  The computational bottlenecks of SVRs exist primarily in solving the Convex Optimization problem. Although there exist many approaches to solving the Convex Optimization problem, Primal Dual Interior Point Methods(PD-IPM) is utilized to solve it as it is highly effective in efficiently traversing the interior of the feasible region and also enables solutions of linear programming problems (something that several other solvers do not support).
 \newline
@@ -400,8 +400,8 @@ Subject \ to:\ \lambda_{i},\ \xi_{i},\ \theta_{i},\ \phi_{i} \geq 0
  where\ Q=K(x_{i}, x_{j})
  \end{gather*}
  Solving the Convex Optimization problem then resolves to computing the Newton increments for the variables until a feasible solution is achieved.
- According to Convex Optimization (Boyd et al.), these increments in the Newton's iterations can be described as:
- \newline
+ Adapting the literature in Convex Optimization (Boyd et al.), these increments in the Newton's iterations can be described as:
+ \cleardoublepage
 \[
 \begin{pmatrix} 
 Q_{nn}&-Q_{nn}&I_{nn}&0_{nn}&-I_{nn}&0_{nn}&1_{n}\\
@@ -506,7 +506,7 @@ Iterations are performed until certain conditions described by the IPM are satis
 1^T(Q(\alpha - \alpha^*) + 1_{n}.\epsilon - y + \lambda - \theta + 1_{n}.\nu) \leq s \approx 0\ and \\
 1^T( -Q(\alpha - \alpha^*) + 1_{n}.\epsilon + y + \xi - \phi - 1_{n}.\nu) \leq s \approx 0
  \end{gather*}
- The computational bottleneck of complexity $O(n^3)$ in this process is on determining the inverse of the Kernel Matrix Q, which occurs during each iteration in solving for both $\Delta \nu$ and $\Delta \alpha$. \\
+ The computational bottleneck of complexity $O(n^3)$ in this process is of determining the inverse of the Kernel Matrix Q, which occurs during each iteration in solving for both $\Delta \nu$ and $\Delta \alpha$. \\
 The matrix Q that is to be inverted, has already been approximated by the low-rank matrix $H$ as $HH^T$ and is distributedly stored, so  {\bf  the bottleneck of the Newton iterations can be sped up from $\bm{O(n^3)}$ to $\bm{O(p^2n)}$, and can be parallelized to $\bm{O(p^2n/m)}$} using the Sherman-Morrison-Woodbury formula (Section \ref{Morrison-Woodbury formula}).
 \subsubsection{Morrison-Woodbury formula}  
 \label{Morrison-Woodbury formula}
@@ -518,7 +518,7 @@ where \\
 \delta=diag(\frac{\lambda}{C-\alpha} + \frac{\theta}{\alpha});\   \delta^*=diag(\frac{\xi}{C-\alpha^*} + \frac{\phi}{\alpha^*})\\
 where\ \delta \ and\ \delta^* \ are\ diagonal\ matrices
 \end{gather*} 
-As part of the IPM process, it can be observed observe that $\Sigma^{-1}$ needs to be calculated in the computation of both $\Delta \alpha$ and $\Delta \nu$ (Equations (4) and (5)). Computation of $\Sigma^{-1}$ involves computing the inverse of the matrix Q, which is the bottleneck of the SVR process. In the standard SVR implementation, this operation incurs a $O(n^3)$ cost. 
+As part of the IPM process, it can be observed that $\Sigma^{-1}$ needs to be calculated in the computation of both $\Delta \alpha$ and $\Delta \nu$ (Equations (4) and (5)). Computation of $\Sigma^{-1}$ involves computing the inverse of the matrix Q, which is the bottleneck of the SVR process. In the standard SVR implementation, this operation incurs a $O(n^3)$ cost. 
 \newline\newline
 {\bf Through the application on Incomplete Cholesky Factorization and Morrison-Woodbury formula, the time complexity can be reduced to $\bm{O(np^2)}$ and can be parallelized to $\bm{O(np^2/m)}$.}
 \newline
@@ -829,7 +829,7 @@ From the graphs in Figure 4.3, the following observations can be made regarding 
 \item For smaller datasets, the speedup deteriorates at a much faster rate as compared to the larger ones when the Cholesky Factorization is considered. The same reasoning as for (b) can be applied here. The time taken for execution of the program for larger datasets is much more than for the smaller datasets. So for smaller datasets, fewer machines are needed to make the time taken for the execution of the sequential portion to be significant when compared to the larger datasets.
 \item The effect of Choleskly Factorization on datasets of similar size but requiring different number of iterations required for convergence(SARCOS and AIMPEAK) is significant. The speedup curves obtained after disregarding the time for Cholesky Factorization are similar for both datasets, but if the Choleskly Factorization is included, the speedup for the SARCOS dataset is much more than for the AIMPEAK dataset. This is because for the AIMPEAK dataset, more iterations are required for the convergence of a solution implying more executions of the sequential portion of the program, which negatively affects the speedup at each iteration.
 \end{enumerate}
-From Amdahl's law, the speedup that can be achieved is capped by the un-parallelizable portions of the program. From the results and observations above, this means that for a larger speedup, the time taken for the un-parallelizable portion of the program needs to be insignificant compared to the rest of the program, which is the case for larger datasets. So, {\bf larger the dataset, greater is the speedup we can achieve by increasing the machines used.} For smaller datasets, since the time taken for the un-parallelizable portion of the program is not insignificant, the speedup that can be achieved will be limited.
+From Amdahl's law, the speedup that can be achieved is capped by the un-parallelizable portions of the program. From the results and observations above, this means that for a larger speedup, the time taken for the un-parallelizable portion of the program needs to be insignificant compared to the rest of the program, which is the case for larger datasets. So, {\bf larger the dataset, greater is the speedup we can achieve by increasing the machines used.} For smaller datasets, since the time taken for the un-parallelizable portion of the program is significant, the speedup that can be achieved will be limited.
 \subsection{Summary of Results}
 \label{Summary of Results}
 From the observations in the previous subsections, the following observations can be made:
@@ -852,7 +852,7 @@ For smaller datasets, this is not always the case; LIBSVM outperforms PSVR when 
 \end{enumerate}
 \cleardoublepage
 \section{Conclusion}
-Through the course of this paper, the salient features of Support Vector Regression have been highlighted and the need for a SVR implementation that allows usage of large datasets have been identified. Following this, a novel Parallel Support Vector Regression(PSVR) algorithm was proposed which  allowed the SVR convex optimization problem to be efficiently solved by reducing the initial memory requirement from $O(n^2)$ to $O(np/m)$ and the computational complexity from $O(n^3)$ to $O(np^2/m)$,  where $m$ is the number of machines available, $n$ is the number of training instance and $p$ is the reduced matrix dimension with $p << n$. PSVR  achieves this through a combination of distributing the computational load among parallel machines and performing a matrix approximation of the Kernel matrix.
+Through the course of this paper, the salient features of Support Vector Regression have been highlighted and the need for a SVR implementation that allows usage of large datasets have been identified. Following this, a novel Parallel Support Vector Regression(PSVR) algorithm was proposed which  allowed the SVR convex optimization problem to be efficiently solved by reducing the initial memory requirement from $O(n^2)$ to $O(np/m)$ and the computational complexity from $O(n^3)$ to $O(np^2/m)$,  where $m$ is the number of machines available, $n$ is the number of training instance and $p$ is the reduced matrix dimension with $p << n$. PSVR  achieves this through a combination of distributing the computational load among parallel machines and performing a matrix approximation of the Kernel Matrix.
 \newline\newline
 The proposed PSVR algorithm was implemented in C++ using the Message Parsing Interface and through experiments it was verified that PSVR outperformed the state-of-the-art SVR implementation with respect to computational complexity in almost all cases. It was also verified that PSVR had nearly equivalent predictive accuracy as the state-of-the-art implementation. The overheads associated with the PSVR algorithm and implementation were also explained and supported by the results of the experiments. 
 \newline
@@ -860,14 +860,14 @@ The proposed PSVR algorithm was implemented in C++ using the Message Parsing Int
 {\bf Through the course of these experiments, it can be firmly establish that Parallel Support Vector Regression effectively solves the scalability issues associated with Support Vector Regression for usage with larger datasets.}
 \newline
 \newline
-This being said, although PSVR is effective and can be used for smaller datasets, LIBSVM and other SVR implementations which have been specifically optimized for smaller datasets maybe a better option, if an insufficient number of parallel machines are available. For larger datasets, PSVR outperforms LIBSVM even if only a single machine is used and is the clear choice for usage.
+This being said, although PSVR is effective and can be used for smaller datasets, LIBSVM and other SVR implementations which have been specifically optimized for smaller datasets may be a better option, if an insufficient number of parallel machines are available. For larger datasets, PSVR outperforms LIBSVM even if only a single machine is used and is the clear choice for usage.
 \newline\newline
 The PSVR implementation is available at \url{https://github.com/akshayv/psvr}. 
 \subsection{Future Improvements}
 The PSVR project still has potential for improvements, the most salient of which being:
 \begin{itemize}
 \item A pre-processing step could be introduced to determine the optimal parameter values for the SVR training process, possibly through maximum likelihood estimates. The importance of this feature stems from the fact that the tuning of parameters in the SVR process makes a significant difference in the predictive accuracy and re-training the entire model to find the optimal parameter values would significantly increase the computational time.
-\item One of the requirements for both the Incomplete Cholesky Factorization and Cholesky Factorization processes is that the matrix to be factorized be a symmetric, positive-definite matrix and the matrices generated by using the standard Kernel Functions satisfy this criteria. There exists an extension of the standard Radial Basis Kernel Function which allows varying the hyperparameters for each of the input features to provide a more accurate regression model. Unfortunately, the Kernel matrix that is constructed from this modified function does not satisfy the conditions of a positive semi-definite matrix. Using a smaller rank ratio to approximate this matrix provides worse results compared to matrix generated by the standard Kernel Functions with the same rank ratio. This issue can be alleviated by using a large rank ratio for the approximated matrix, but this would incur a larger computational cost in the process of performing a Cholesky factorization, so is currently sub-optimal. Resolving this issue would improve predictive performance of PSVR (although not significantly).
+\item One of the requirements for both the Incomplete Cholesky Factorization and Cholesky Factorization processes is that the matrix to be factorized be a symmetric, positive, semi-definite matrix and the matrices generated by using the standard Kernel Functions satisfy this criteria. There exists an extension of the standard Radial Basis Kernel Function which allows varying the hyperparameters for each of the input features to provide a more accurate regression model. Unfortunately, the Kernel matrix that is constructed from this modified function does not satisfy the conditions of a positive semi-definite matrix. Using a smaller rank ratio to approximate this matrix provides worse results compared to matrix generated by the standard Kernel Functions with the same rank ratio. This issue can be alleviated by using a large rank ratio for the approximated matrix, but this would incur a larger computational cost in the process of performing a Cholesky factorization, so is currently sub-optimal. Resolving this issue would improve predictive performance of PSVR (although not significantly).
 \end{itemize}
 \cleardoublepage
 \pagenumbering{roman}
