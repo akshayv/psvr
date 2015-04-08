@@ -65,7 +65,7 @@ Deliverables:\\
 \addcontentsline{toc}{section}{\protect\numberline{}Abstract}%
 \end{center}
 \begin{adjustwidth}{2 cm}{2 cm} 
-Support Vector Regression suffers from known scalability issues with respect to both memory usage as well as computational time which makes it unusable with larger datasets. To alleviate these bottlenecks, Parallel Support Vector Regression (PSVR) has been proposed and implemented, which utilizes multi-core processors and supercomputing clusters to distributedly compute the regression model as well as use matrix factorization techniques to reduce the overall computation required to be performed. If the number of training instances is $n$, the rank of the factorized matrix is $p$ and the number of available machines is $m$, PSVR successfully reduces the memory requirement from $O(n^2)$ to $O(np/m)$ where $p << n$; and the computational complexity from $O(n^3)$ to $O(np^2/m)$. Experiments performed examine the effectiveness of PSVR from both an accuracy and scalability standpoint.\\
+Support Vector Regression suffers from known scalability issues with respect to both memory usage as well as computational time which makes it unusable with larger datasets. To alleviate these bottlenecks, Parallel Support Vector Regression (PSVR) has been proposed and implemented, which utilizes multi-core processors and computing clusters to distributedly compute the regression model as well as use matrix factorization techniques to reduce the overall computation required to be performed. If the number of training instances is $n$, the rank of the factorized matrix is $p$ and the number of available machines is $m$, PSVR successfully reduces the memory requirement from $O(n^2)$ to $O(np/m)$ where $p << n$; and the computational complexity from $O(n^3)$ to $O(np^2/m)$. Experiments performed examine the effectiveness of PSVR from both an accuracy and scalability standpoint.\\
 The implementation of PSVR is available at:
 \begin{center}
  \url{https://github.com/akshayv/psvr}
@@ -93,7 +93,7 @@ CentOS 5.6 Linux, C++, MPI 3, Intel Xeon Processors, LIBSVM
 \end{adjustwidth} 
 \newpage
 \section*{Acknowledgements}
-\addcontentsline{toc}{section}{\protect\numberline{}Acknowledgement}%
+\addcontentsline{toc}{section}{\protect\numberline{}Acknowledgements}%
 I would like to express my sincere gratitude to the following people:
 \newline
 \newline
@@ -113,7 +113,7 @@ My family and friends for their emotional support through this period.
 \cleardoublepage
 \pagenumbering{arabic}
 \section{Introduction}
-This research project focuses on developing a parallel implementation of the Support Vector Regression(SVR) algorithm which allows usage of SVR for analysis of large datasets by exploiting multi-core processors and supercomputing clusters. 
+This research project focuses on developing a parallel implementation of the Support Vector Regression(SVR) algorithm which allows usage of SVR for analysis of large datasets by exploiting multi-core processors and computing clusters. 
 \subsection{Motivation}
 Regression analysis is a Machine Learning task which aims to establish relationships among input variables, and has several applications including prediction and forecasting of variables. With the increasing ease of data collection over the recent years, the dependence of regression analysis to model this data has risen as well. One instance of a learning model which can be effectively used for regression analysis is Support Vector Regression.
 \newline\newline
@@ -140,7 +140,7 @@ Ideally, SVR would scale comfortably with the increase in data instances to prod
 
 These limitations make it increasingly impossible to use the standard SVR algorithm for use with larger datasets; The larger datasets correspond to real-world requirements and situations and an algorithm which is unable to cater to these requirements would be highly ineffective.
 \subsection{Objective}
-In this project a parallel SVR algorithm (PSVR) is proposed which utilizes supercomputing clusters to allow SVR to effectively scale with larger datasets.
+In this report a parallel SVR algorithm (PSVR) is proposed which utilizes computing clusters to allow SVR to effectively scale with larger datasets.
 Specifically, the following questions will be addressed:
 \newline\newline
 \setlength{\leftskip}{3cm}
@@ -154,7 +154,7 @@ To improve scalability of the SVR algorithm with respect to both memory requirem
 The successful implementation of the PSVR algorithm would mean:
 \begin{itemize}
 \item {\bf Highly efficient SVR algorithm} 
-Subject to the availability of a supercomputing cluster, PSVR would be able substantially increase the efficiency of the SVR training procss by utilizing a low-rank matrix approximation and parallel computing.
+Subject to the availability of a computing cluster, PSVR would be able substantially increase the efficiency of the SVR training procss by utilizing a low-rank matrix approximation and parallel computing.
 \item {\bf Usability with large datasets} By utilizing more machines in parallel the bottlenecks of SVR can be alleviated and this would mean that even for larger datasets, which correspond to real-word scenarios, PSVR can be utilized increasing the number of machines used.
 \item {\bf Real Time Predictions using distributed model} A by-product of the data distribution across machines is that the support vectors for each subset only reside on that corresponding machine. This would mean that predictions for a data instance can be done distributedly to potentially achieve real time predictions.
 \end{itemize}
@@ -163,9 +163,9 @@ Formulation and successful implementation of this algorithm would mean that the 
 \subsection{Contributions}
 The specific contributions of this project are:
 \begin{itemize}
-\item We present a comprehensive Literature Review of existing SVR implementations which leverage on parallel machines and analyse the differences in the approach (Section \ref{Comparison with other approaches}).
+\item We present a comprehensive Literature Review of existing SVR implementations which leverage on parallel machines and analyse the differences in the approach (Section \ref{Other Parallel SVR approaches}).
 \item We propose a novel Parallel SVR formulation which leverages on the availability of multiple processing cores and matrix approximation\footnotemark to effectively scale with increasingly large data. We simultaneously analyse and determine the computational time and space complexity of the PSVR formulation (Section \ref{Technical Approach}).
-\item We implement this PSVR formulation using the Message Parsing Interface (MPI) and verify its functioning and correctness on a supercomputing cluster.
+\item We implement this PSVR formulation using the Message Parsing Interface (MPI) and verify its functioning and correctness on a computing cluster.
 \item We experimentally verify the predictive performance of PSVR to be approximately equivalent to existing state-of-the-art SVR implementation (Section \ref{Prediction Accuracy}).
 \item We experimentally verify that the scalability and computational time of PSVR significantly outperforms the state-of-the-art SVR implementation (Section \ref{Scalability/Speedup}).
 \end{itemize}
@@ -176,7 +176,7 @@ The specific contributions of this project are:
 The literature review section of this report consists of two subsections, one corresponding to the established background for SVR and the other corresponding to related works in improving the efficiency of SVR.
 \subsection{Background}
 \label{Background} 
-In this section, the details of Support Vector Regression will briefly be explained. Most of the content has been extracted from Elements of Statistical Learning and A Tutorial on Support Vector Regression.
+In this section, the details of Support Vector Regression will briefly be explained. For a more detailed explanation, the reader can refer to  Elements of Statistical Learning\cite{esl} and A Tutorial on Support Vector Regression\cite{svrtut}.
 \newline\newline
  Given training data: $\{(x_{1}, y_{1})\dots(x_{l}, y_{l})\}\subset \chi \times R$, where $\chi$ denotes the space of input patterns, in $\epsilon$-SVR our goal is to estimate a function $f(x)$ that has at most $\epsilon$ deviation from each of the targets $y_{i}$ obtained from the training instances while at the same time is as flat as possible. The required function is described as:  
  \begin{gather*} 
@@ -246,33 +246,89 @@ These attempts at optimization or scaling the algorithms can be classified into 
 \newline
 Several groups have concentrated on different approaches to scaling machine learning algorithms by using distributed computing techniques as using MapReduce frameworks, offloading the computation to high performance GPUs or FGPA boards, exploring a P2P architecture relying on TCP and exploiting multicore processors using Multi Threading and/or Message Parsing Interface (MPI)(Bekkerman et al.).
 \newline \newline
-Under the sub category of using MPI, there have been works to parallelize other algorithms similar to PSVR: Parallel Gaussian Process Regression(Chen et al.) utilizes supercomputing clusters to achieve scalable performance for Gaussian Process Regression. Similarly, Parallel Support Vector Machines(PSVM) (Chang et al.)  utilizes parallel computing to ensure scalability in the process of Support Vector Machines for classification. 
-Specific to SVR, three techniques that utilize computing clusters have been analyzed in Section \ref{Comparison with other approaches}.
+Under the sub category of using MPI, there have been works to parallelize other algorithms similar to PSVR: Parallel Gaussian Process Regression(Chen et al.) utilizes computing clusters to achieve scalable performance for Gaussian Process Regression. Similarly, Parallel Support Vector Machines(PSVM) (Chang et al.)  utilizes parallel computing to ensure scalability in the process of Support Vector Machines for classification. 
+Specific to SVR, three techniques that utilize computing clusters have been analyzed in Section \ref{Other Parallel SVR approaches}.
 \item {\bf Optimizing the underlying algorithm using heuristic methods.}
 \newline
-Various attempts have also been made improve the performance of the Quadratic Programming solver to speed up the process of solving the SVR convex optimization problem. These attempts include using heuristic techniques such as chunking (Osuna et al.), kernel caching (Joachims et al.), sequential minimal optimization (SMO) (Platt et al.) etc and although they significantly improve the performance for the regression analysis for a given dataset, they do not scale with larger datasets. In some cases, these techniques have been used in conjunction with distributed computing to achieve improved performance and scalability (Section \ref{PiSvM and MRPsvm}).
+Various attempts have also been made improve the performance of the Quadratic Programming solver to speed up the process of solving the SVR convex optimization problem. These attempts include using heuristic techniques such as chunking (Osuna et al.), kernel caching (Joachims et al.), shrinking (Chang et al.) etc and although they significantly improve the performance for the regression analysis for a given dataset, they do not scale with larger datasets. In some cases, these techniques have been used in conjunction with distributed computing to achieve improved performance and scalability (Section \ref{PiSvM and MRPsvm}).
 \end{enumerate}
 PSVR attempts to produce a scalable SVR algorithm for use with large data, which relies on using distributed computing techniques in conjuction with the Kernel Matrix approximation.
-\subsection{Comparison with other approaches}
-\label{Comparison with other approaches}
-This section explores the difference between the proposed PSVR and other attempts at parallelizing SVR.
+\subsection{Other Parallel SVR approaches}
+\label{Other Parallel SVR approaches}
+This section analyses the different approaches to parallelize SVR and compares these approaches to PSVR.
 \subsubsection{PiSvM and MRPsvm}
 \label{PiSvM and MRPsvm}
-PiSvM and MRPsvm follow a similar approach to solving the Convex Optimization problem; Both use matrix decomposition techniques to decompose the original kernel matrix into several smaller matrices and optimize (using a SMO solver) each portion in parallel, before merging the results. There exist minor differences between the two implementations:
+PiSvM and MRPsvm follow a similar approach to solving the Convex Optimization problem; Both use matrix decomposition techniques to decompose the original Kernel Matrix into several smaller matrices and optimize (using a Sequential Minimal Optimization solver) each portion in parallel using parallel processors, before merging the Support Vectors from each of these parallel machines to a $master$ machine.
+\newline
+There exist minor differences between the two implementations:
 \begin{itemize}
 \item PiSvM utilizes MPI and hence relies on a distributed memory system while MRPsvm uses a Map-Reduce framework with a shared-memory system.
-\item Due to the distributed nature of the implementation as a consequence of using MPI, PiSvM requires each process to locally cache a piece of the Kernel Matrix and the task of updating gradients is assigned to the corresponding processors. according to cache locality MRPsvm maintains a single shared copy of the matrix and each processor accesses the cache equally.
+\item Due to the distributed nature of the implementation as a consequence of using MPI, PiSvM requires each processor to locally cache a piece of the Kernel Matrix and the task of updating gradients is assigned to the corresponding processors, according to cache locality. MRPsvm maintains a single shared copy of the matrix and each processor accesses the cache equally.
+\item PiSvM requires each processor to maintain a copy of all data instances and MRPsvm maintains a shared copy of all instances.
 \end{itemize}
-
-The PSVR algorithm resembles PiSvM in the fact that the kernel matrix is distributed among each of the processes. The main differences between PSVR and the above two algorithms is that PSVR does not perform local optimizations on the distributed chunks and that PSVR performs a matrix approximation as a prior step to reduce the computational load. PSVR uses Primal-Dual Interior Point Method to solve the Convex Optimization problem.
-\newline
-\subsubsection{Parallel Cascade SVM}
-Parallel Cascade SVM takes a significantly different approach to solving the Convex Optimization problem. The idea behind Cascade SVM is that the training instances that are not Support Vectors can be eliminated early in the process and do not contribute to the regression model. In Parallel Cascade SVM, each parallel machine optimizes a subset of the training instances, filtering out the instances that do not correspond to Support Vectors. The filtering takes place in a hierarchical manner and the instances from the previous layer and merged at subsequent layers. To obtain global minimum for the optimization, the result of the last layer is fed back to the first layer. The entire training set is (almost) never dealt with at each instance and the last layer has to deal with only a subset of the training instances, depending on the quality of filtering.
+Both these approaches boast many advantages and some disadvantages with respect to accuracy and scalability. One clear advantage is the high accuracy of the regression model due to usage of the full-rank Kernel Matrix. Both these algorithms also use heuristic methods such as Kernel Caching to speed up the Convex Optimization problem.\newline 
+Unfortunately, due to the usage of a full-rank Kernel Matrix, these methods will be ineffective when run on smaller computing clusters while attempting to train large datasets due to limited memory and processsing power. Also, due to the distributed nature of the Kernel Matrix and high dependence on data residing on other processors, the communication overhead for PiSvM will drastically increase for large datasets.
 \newline\newline
- There are very few similarities between PSVR and Parallel Cascade SVM apart from the fact that both leverage on parallel machines to speed up computation. The matrix approximation is not necessarily useful in case of Cascade SVM since each machine deals with only a subset of the training instances. That being said, the usefulness of Cascade SVMs greatly depends on the nature of the dataset (datasets with large percentage of SVs would have significantly higher computational time using Cascade SVM) and the number of parallel machines available (fewer parallel machines would cause the computational time to increase significantly; the number of machines required must increase with increasingly large datasets).
+Table 2.1 compares these approaches to other parallel implementations of SVR.
+\subsubsection{Parallel Cascade SVM}
+Parallel Cascade SVM takes a significantly different approach to solving the Convex Optimization problem. The idea behind Cascade SVM is that the training instances that are not Support Vectors can be eliminated early in the process and do not contribute to the regression model. In Parallel Cascade SVM, each parallel machine optimizes a subset of the training instances, filtering out the instances that do not correspond to Support Vectors. The filtering takes place in hierarchically and the instances from the previous layer are merged at subsequent layers. To obtain global minimum for the optimization, the result of the last layer is fed back to the first layer. The entire training set is (almost) never dealt with at each instance and the last layer has to deal with only a subset of the training instances, depending on the quality of filtering.
+\newline\newline
+The advantages and disadvantages of Parallel Cascade SVM are very similar to those of MRPsvm: Due to the usage of a full-rank Kernel Matrix, the generated regression model will be highly accurate. For datasets whose regression models contain fewer number of Support Vectors, this model will be very effective for usage with large datasets.\newline
+Unfortunately - similar to MRPsvm - due to usage of full-rank Kernel Matrix, this method will not be applicable to smaller computing clusters while using larger datasets. A significant disadvantage, specific to Parallel Cascade SVM, is the fact that its effectiveness is dependent on the nature of the data; If the dataset to be modeled contains a large number of Support Vectors, the top-level processor will be required to optimize all these Support Vectors independently, causing Parallel Cascade SVM to be highly ineffective.
+\newline\newline
+Table 2.1 compares the Parallel Cascade SVM approach to other parallel SVR approaches.
+\subsubsection{Comparison between approaches}
+The salient features of the different approaches to parallelize SVR  have been compared in Table 2.1. Through this comparison, the weaknesses of the prior attempts to parallelize SVR will be established, along with the efforts made by PSVR to overcome these weaknesses. \newline\newline
+The following terminology is used in Table 2.1: 
+\begin{itemize}
+\item $m$ corresponds to number of processing cores used, $n$ is the number of training instances and $p$ isis the reduced rank of the Kernel Matrix used in PSVR with $p << n$.
+\item  With regard to the Quadratic Programming(QP) solvers for the Convex Optimization problem, IPM corresponds to Interior Point Method while SMO corresponds to Sequential Minimal Optimization.
+\end{itemize}
+\begin{center}
+\begin{tabular}{ |c|c|c|c|c| }
+  \hline
+   & PSVR & PiSvM  & MRPsvm & P-Cascade SVM \\
+  \hline
+  \renewcommand{\arraystretch}{0.7}% Tighter
+   \begin{tabular}{@{}c@{}}Worst Case \\ Time Complexity\end{tabular} & $O(np^2/m)$ & $O(n^3/m)$ & $O(n^3/m)$ & $O(n^3)$ \\
+  \hline  
+    \renewcommand{\arraystretch}{0.7}% Tighter
+  \begin{tabular}{@{}c@{}}Worst Case \\ Space Complexity\end{tabular} & $O(np/m)$ & $O(n^2/m)$ &$O(n^2/m)$& $O(n^2)$ \\
+  \hline
+    \renewcommand{\arraystretch}{1}% Tighter
+  QP Solver& IPM & SMO & SMO & SMO \\
+  \hline
+  \renewcommand{\arraystretch}{1}% Tighter
+  Framework used  & MPI & Map-Reduce & MPI & Map-Reduce \\
+  \hline  
+  Matrix Decomposition & Yes & Yes & Yes & No \\
+  \hline
+  Data Distribution & Yes & Yes & No & No \\
+   \hline
+  Local Optimization & No & Yes & Yes & Yes \\
+   \hline
+  \renewcommand{\arraystretch}{0.7}% Tighter
+  \begin{tabular}{@{}c@{}}Kernel Matrix \\ Approximation\end{tabular} & Yes & No & No & No \\
+  \hline  
+    \renewcommand{\arraystretch}{0.7}% Tighter
+   \begin{tabular}{@{}c@{}}Effective with \\ Small Clusters\end{tabular} & Yes & No & No & No \\
+  \hline
+\end{tabular}
+  \renewcommand{\arraystretch}{1}% Tighter
+\ \\
+\ \\
+Table 2.1. Comparison of attempts to parallelize SVR.
+\end{center}
+It is evident from the rows corresponding to `Worst Case Time Complexity' and `Worst Case Space Complexity' in Table 2.1 that while the PSVR model is only linearly affected by the increase in size of a dataset, the other models are cubically affected with regards to time and quadratically affected with respect to space. This would mean that for PiSvM, MRPsvm and Parallel Cascade SVM, the increase in size of a dataset causes the resource requirements (memory and processing speed) to handle this larger dataset to rise sharply, which is undesirable. 
+\newline\newline
+{\bf The advantage that PSVR boasts over other approaches to parallelize SVR is that it gracefully and effectively scales with large datasets, which is not the case for the other approaches, whose requirements rise abruptly with the increase in size of datasets.} 
+\newline\newline
+{\bf The question now is, how should PSVR be formulated and implemented to effectively scale with large datasets?}
 \cleardoublepage
  \section{Technical Approach}
  \label{Technical Approach}
+ {\bf This section explains, in detail, the steps taken by PSVR to ensure scalability with large datasets.}
+ \newline\newline
 {\bf The approach that PSVR takes is to leverage on both the availability of parallel machines as well as approximation the Kernel Matrix with a low-rank matrix.}
 \newline\newline
 A high-level overview of the PSVR process is as follows:
@@ -520,7 +576,7 @@ where $N_{sv}$ is the number of Support Vectors and $sv_{i}$ corresponds to each
 \item  {\bf Prediction Accuracy}: Root Mean Square Error to determine accuracy of regression model
 \item {\bf Speedup}: Relative performance increase by usage of parallel machines
 \end{itemize}
-{\bf The various overheads associated with PSVR, which impact the Scalability and Speedup of PSVR are also analysed.}
+{\bf The various overheads associated with PSVR, which impact the Scalability and Speedup of PSVR are also analyzed.}
 \newline\newline
 For these experiments, 4 datasets are considered. For each dataset, experimentation and cross validation is used to determine the optimal parameters and Kernel Function to use to model that dataset. These datasets correspond to : 
 \begin{enumerate}[label=(\alph*)]
@@ -651,7 +707,7 @@ Usage of parallel computing in PSVR incurs two types of overheads, Communication
 \begin{itemize}
 \item Communication overhead corresponds to the overhead incurred due to broadcast and transmission of messages over the network as part of MPI. 
 \newline
-As the number of machines used increases, the communication over the network at each step increases as well, implying more Communication overhead with increase number of machines. The increase in overhead could be minimal\footnotemark or substantial depending on the underlying architecture of the supercomputing cluster.
+As the number of machines used increases, the communication over the network at each step increases as well, implying more Communication overhead with increase number of machines. The increase in overhead could be minimal\footnotemark or substantial depending on the underlying architecture of the computing cluster.
  \footnotetext{In Figure 4.2, we notice that the Communication overhead rises significantly until m = 5 and then the increase is minor; The collective operations using MPI3 are substantially faster for processors on the same physical machine (since network traffic is minimized) and after m $\geq$ 5, while the number of processors per physical machines used increases, the number of physical machines used remains the same, causing the overhead to increase minimally for subsequent values of m(since inter-processor communication does not rely on the network).}
 \item Synchronization overhead occurs due to non-identical configuration of the machines used. Various machines are capable of executing the program at various speeds and after each step in PSVR, a synchronization occurs (using MPIBarrier) which ensures that every machine has reached the same point of execution (to prevent the situation that one of the machines fails but the other machines aren't notified).
 \end{itemize}
@@ -768,9 +824,9 @@ coordinates {(1,1)(2, 1.89)(5, 3.71)(10, 6.33)(20, 9.12)(40, 11.10)(50, 11.81)};
 \newline\newline
 From the graphs in Figure 4.3, the following observations can be made regarding the nature of the speedup curve:
 \begin{enumerate}[label=(\alph*)]
-\item If the time taken for Cholesky Factorization is disregarded for all datasets, the speedup curve obtained by varying number of machines used is similar (not identical) across datasets, verifying the effect of the Sequential portion of the program on the speedup. The deviation of the speedup curves obtained after disregarding the time for Cholesky Factorization from the ideal speedup in these graphs is due to the Synchronization and Communication overheads explained in Section \ref{Overhead}.
-\item With fewer machines, the effect of the Cholesky Factorization portion on the speedup is not observable, as the time taken for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of executing the sequential portion significant.
-\item For smaller datasets, the speedup deteriorates at a much faster rate as compared to the larger ones, when the Cholesky Factorization is considered. The same reasoning as for (b) can be applied here. The time taken for execution of the program for larger datasets is much more than for the smaller datasets, so the time taken for the execution of the sequential portion of the program becomes significant with fewer machines used, as the remainder of the program scales nearly linearly, while the time taken for execution of the sequential portion remains the same.
+\item If the time taken for Cholesky Factorization is disregarded for all datasets, the speedup curve obtained by varying number of machines used is similar (not identical) across datasets, establishing the effect of the Sequential portion of the program on the speedup. The deviation of the speedup curves obtained after disregarding the time for Cholesky Factorization from the ideal speedup in these graphs is due to the Synchronization and Communication overheads explained in Section \ref{Overhead}.
+\item With fewer machines, the effect of the Cholesky Factorization portion of the program on the speedup is not observable, as the time taken for this computation is insignificant when compared to the time taken for the overall computation. As the number of machines used increases, the time taken for computation of other portions decreases (nearly linearly) while the time for executing the Cholesky Factorization remains the same, making the cost of executing the sequential portion significant.
+\item For smaller datasets, the speedup deteriorates at a much faster rate as compared to the larger ones when the Cholesky Factorization is considered. The same reasoning as for (b) can be applied here. The time taken for execution of the program for larger datasets is much more than for the smaller datasets. So for smaller datasets, fewer machines are needed to make the time taken for the execution of the sequential portion to be significant when compared to the larger datasets.
 \item The effect of Choleskly Factorization on datasets of similar size but requiring different number of iterations required for convergence(SARCOS and AIMPEAK) is significant. The speedup curves obtained after disregarding the time for Cholesky Factorization are similar for both datasets, but if the Choleskly Factorization is included, the speedup for the SARCOS dataset is much more than for the AIMPEAK dataset. This is because for the AIMPEAK dataset, more iterations are required for the convergence of a solution implying more executions of the sequential portion of the program, which negatively affects the speedup at each iteration.
 \end{enumerate}
 From Amdahl's law, the speedup that can be achieved is capped by the un-parallelizable portions of the program. From the results and observations above, this means that for a larger speedup, the time taken for the un-parallelizable portion of the program needs to be insignificant compared to the rest of the program, which is the case for larger datasets. So, {\bf larger the dataset, greater is the speedup we can achieve by increasing the machines used.} For smaller datasets, since the time taken for the un-parallelizable portion of the program is not insignificant, the speedup that can be achieved will be limited.
@@ -876,10 +932,10 @@ At the end of the algorithm, $H$ is stored distributedly on $m$ machines, ready 
 \renewcommand{\section}[2]{}%
  \begin{thebibliography}{}
  
-  \bibitem{svrtut}Smola A.,  Scholkopf B. {\em A Tutorial on Support Vector Regression} 2004:  Statistics and computing 14.3: 199-222.
-  
  \bibitem{esl}Hastie T. {\em Elements of Statistical Learning} 2009:  Vol. 2. No. 1. New York: Springer.
     
+  \bibitem{svrtut}Smola A.,  Scholkopf B. {\em A Tutorial on Support Vector Regression} 2004:  Statistics and computing 14.3: 199-222.
+  
  \bibitem{svrthesis}Smola A. {\em Regression
 Estimation with Support Vector Learning Machines} 1996: Master's thesis, Technische Universit at Munchen.
 
@@ -894,7 +950,7 @@ Estimation with Support Vector Learning Machines} 1996: Master's thesis, Technis
 
  \bibitem{pgp} Chen J., Cao N., Low K. H.,  Ouyang R., Tan C. K., Jaillet P.  {\em Parallel Gaussian Process Regression with Low-Rank Covariance Matrix Approximations} 2013: arXiv preprint arXiv:1305.5826
  
-\bibitem{SMO}J. C. Platt {\em Fast training of support vector machines using sequential minimal optimization} 1999: Advances in kernel methods: support vector learning, pp. 185–208
+\bibitem{libsvm}J. C. Platt {\em LIBSVM: A library for support vector machines} 2011: ACM Transactions on Intelligent Systems and Technology (TIST), Volume 2 Issue 3, Article No. 27	
 
 \bibitem{kernelcaching}T. Joachims. {\em Making large-scale support vector machine learning practical} 1999: Advances in kernel methods: support vector learning, pp. 169–184
 
