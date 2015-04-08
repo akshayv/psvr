@@ -882,7 +882,7 @@ H(i_k, k) = \sqrt{v(i_k)}\\
 ￼H(J_k, k) = \frac{(Q(J_k, k) - \sum_{j=1}^{k-1}{H(J_k, j)(H(i_k, j))}}{H(i_k, k)}\\
 v(J_k) = v(J_k) - H(J_k, k)^2, 
 \end{gather}
-where $J_k$ denotes the complement of $\{i_1 , i_2 , . . . , i_k \}$. The algorithm iterates until the approximation of $Q$ by $H_k H_ k^T$ (measured by $trace(Q − H_k H_k^T )$) is satisfactory, or the predefined maximum iterations (or say, the desired rank of the ICF matrix) p is reached.\newline
+where $J_k$ denotes the complement of $\{i_1 , i_2 , . . . , i_k \}$. The algorithm iterates until the approximation of $Q$ by $H_k H_ k^T$ (measured by $trace(Q - H_k H_k^T )$) is satisfactory, or the predefined maximum iterations (or say, the desired rank of the ICF matrix) p is reached.\newline
 \newline
 {\bf The details of computing the pivots and updating the vectors in each iteration have been explained in Algorithm 1.}
 \newline
