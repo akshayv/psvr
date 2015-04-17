@@ -530,9 +530,9 @@ For convenience, $(z - \Delta\nu)$ will be referred to as the vector $u$, and $(
 \newline\newline
 The SMW (the Sherman-Morrison-Woodbury formula) is not directly applicable to our case, it needs to be modified to account for the additional matrix factor, E, which is fortunately a diagonal matrix. So, $\Sigma^{-1}u$ can be equated to:
  \begin{gather} 
-\Sigma^{-1}u = (\delta+QE)^{-1}u \approx (\delta+HEH^T)^{-1}u\\
-= \delta^{-1}u - \delta^{-1}H(I + H^T \delta^{-1}EH)^{-1}EH^T \delta^{-1}u\\
-= \delta^{-1}u - \delta^{-1}H(GG^{T})^{-1}EH^T \delta^{-1}u
+\Sigma^{-1}u = (\delta+QE)^{-1}u \approx (\delta+HH^TE)^{-1}u\\
+= \delta^{-1}u - \delta^{-1}H(I + H^T \delta^{-1}EH)^{-1}H^TE \delta^{-1}u\\
+= \delta^{-1}u - \delta^{-1}H(GG^{T})^{-1}H^TE \delta^{-1}u
 \end{gather}
 $\Sigma^{-1}u$ can be computed in four steps:
 \begin{enumerate}
